@@ -12,6 +12,7 @@ import {
   Ticket,
   PlusCircle,
   User,
+  Users,
   Settings,
   ClipboardList,
   LogOut,
