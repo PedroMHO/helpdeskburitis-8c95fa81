@@ -80,6 +80,8 @@ function TicketDetail() {
     return <p className="text-muted-foreground">Chamado não encontrado.</p>;
 
   const canManage = isAdmin || isTecnico;
+  const isOwner = !!user && ticket.solicitante_id === user.id;
+  const canDelete = isAdmin || isOwner;
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
   const locName = () => {
