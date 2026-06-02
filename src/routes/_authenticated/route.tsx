@@ -8,6 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import {
   Headset,
+  History,
   LayoutDashboard,
   Ticket,
   PlusCircle,
