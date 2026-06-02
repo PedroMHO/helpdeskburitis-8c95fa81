@@ -59,7 +59,7 @@ const NAV: NavItem[] = [
 ];
 
 function AuthenticatedLayout() {
-  const { user, loading, profile, roles, isAdmin, isTecnico, signOut } =
+  const { user, loading, profile, isAdmin, isTecnico, signOut } =
     useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
