@@ -108,6 +108,11 @@ function Dashboard() {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-foreground">{t.titulo}</p>
+                    {setorNome(t.setor_id) && (
+                      <p className="truncate text-xs font-medium text-primary">
+                        {setorNome(t.setor_id)}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString("pt-BR")}
                     </p>
