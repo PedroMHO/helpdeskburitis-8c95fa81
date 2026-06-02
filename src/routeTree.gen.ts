@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTicketsNovoRouteImport } from './routes/_authenticated/tickets.novo'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -39,18 +40,26 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTicketsNovoRoute =
+  AuthenticatedTicketsNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => AuthenticatedTicketsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/tickets': typeof AuthenticatedTicketsRoute
+  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/tickets': typeof AuthenticatedTicketsRoute
+  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,13 +67,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/tickets': typeof AuthenticatedTicketsRoute
+  '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/_authenticated/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/tickets'
+  fullPaths: '/' | '/auth' | '/dashboard' | '/tickets' | '/tickets/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/tickets'
+  to: '/' | '/auth' | '/dashboard' | '/tickets' | '/tickets/novo'
   id:
     | '__root__'
     | '/'
@@ -72,6 +82,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/tickets'
+    | '/_authenticated/tickets/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,17 +128,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tickets/novo': {
+      id: '/_authenticated/tickets/novo'
+      path: '/novo'
+      fullPath: '/tickets/novo'
+      preLoaderRoute: typeof AuthenticatedTicketsNovoRouteImport
+      parentRoute: typeof AuthenticatedTicketsRoute
+    }
   }
 }
 
+interface AuthenticatedTicketsRouteChildren {
+  AuthenticatedTicketsNovoRoute: typeof AuthenticatedTicketsNovoRoute
+}
+
+const AuthenticatedTicketsRouteChildren: AuthenticatedTicketsRouteChildren = {
+  AuthenticatedTicketsNovoRoute: AuthenticatedTicketsNovoRoute,
+}
+
+const AuthenticatedTicketsRouteWithChildren =
+  AuthenticatedTicketsRoute._addFileChildren(AuthenticatedTicketsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRoute
+  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedTicketsRoute: AuthenticatedTicketsRoute,
+  AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
