@@ -121,6 +121,43 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["tickets"] });
   };
 
+  const mudarStatus = async (novo: TicketStatus) => {
+    if (!user || novo === ticket.status) return;
+    if (novo === "finalizado") {
+      setFinalizing(true);
+      return;
+    }
+    setBusy(true);
+    const patch: Record<string, unknown> = { status: novo };
+    if (novo === "em_atendimento" && !ticket.tecnico_id) patch.tecnico_id = user.id;
+    const { error } = await supabase
+      .from("tickets")
+      .update(patch)
+      .eq("id", ticket.id);
+    if (!error) await recordHistory(ticket.status, novo);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
+  const agendar = async () => {
+    if (!user) return;
+    if (!scheduleAt) return toast.error("Selecione a data e hora do agendamento.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ scheduled_at: new Date(scheduleAt).toISOString() })
+      .eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado agendado!");
+    setScheduling(false);
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
   const finalizar = async () => {
     if (!user) return;
     if (!note.trim())
