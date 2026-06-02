@@ -128,7 +128,7 @@ function TicketDetail() {
       return;
     }
     setBusy(true);
-    const patch: Record<string, unknown> = { status: novo };
+    const patch: { status: TicketStatus; tecnico_id?: string } = { status: novo };
     if (novo === "em_atendimento" && !ticket.tecnico_id) patch.tecnico_id = user.id;
     const { error } = await supabase
       .from("tickets")
