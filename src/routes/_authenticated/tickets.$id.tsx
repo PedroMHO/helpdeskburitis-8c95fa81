@@ -262,21 +262,75 @@ function TicketDetail() {
         )}
 
         {canManage && ticket.status !== "finalizado" && (
-          <div className="mt-6 flex flex-wrap gap-2 border-t pt-4">
-            {ticket.status === "aguardando" && (
-              <Button onClick={assumir} disabled={busy}>
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                <Wrench className="h-4 w-4" /> Assumir Chamado
+          <div className="mt-6 space-y-4 border-t pt-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Alterar status</Label>
+                <Select
+                  value={ticket.status}
+                  onValueChange={(v) => mudarStatus(v as TicketStatus)}
+                  disabled={busy}
+                >
+                  <SelectTrigger className="w-52">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="aguardando">
+                      {STATUS_LABEL.aguardando}
+                    </SelectItem>
+                    <SelectItem value="em_atendimento">
+                      {STATUS_LABEL.em_atendimento}
+                    </SelectItem>
+                    <SelectItem value="finalizado">
+                      {STATUS_LABEL.finalizado}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ticket.status === "aguardando" && (
+                <Button onClick={assumir} disabled={busy}>
+                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <Wrench className="h-4 w-4" /> Assumir Chamado
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setScheduling(true)}>
+                <Calendar className="h-4 w-4" /> Agendar
               </Button>
-            )}
-            {ticket.status === "em_atendimento" && (
               <Button onClick={() => setFinalizing(true)}>
                 <CheckCircle2 className="h-4 w-4" /> Finalizar Chamado
               </Button>
-            )}
+            </div>
           </div>
         )}
       </div>
+
+      <Dialog open={scheduling} onOpenChange={setScheduling}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendar Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="schedule">Data e hora do atendimento</Label>
+            <Input
+              id="schedule"
+              type="datetime-local"
+              value={scheduleAt}
+              onChange={(e) => setScheduleAt(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScheduling(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={agendar} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Agendamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={finalizing} onOpenChange={setFinalizing}>
         <DialogContent>
