@@ -1,0 +1,99 @@
+import { supabase } from "@/integrations/supabase/client";
+import type { TicketPriority, TicketStatus } from "@/lib/helpdesk";
+
+export interface TicketRow {
+  id: string;
+  titulo: string;
+  descricao: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  solicitante_id: string;
+  tecnico_id: string | null;
+  created_by: string;
+  cidade_id: string | null;
+  bairro_id: string | null;
+  setor_id: string | null;
+  closing_note: string | null;
+  closing_image_url: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+export interface ProfileLite {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
+export async function fetchTickets(): Promise<TicketRow[]> {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as TicketRow[];
+}
+
+export async function fetchTicket(id: string): Promise<TicketRow | null> {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as TicketRow) ?? null;
+}
+
+export async function fetchProfiles(): Promise<ProfileLite[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .order("full_name");
+  if (error) throw error;
+  return (data ?? []) as ProfileLite[];
+}
+
+/** Technicians + admins, for assignment dropdowns. */
+export async function fetchTecnicos(): Promise<ProfileLite[]> {
+  const { data: roleRows, error } = await supabase
+    .from("user_roles")
+    .select("user_id, role")
+    .in("role", ["tecnico", "admin"]);
+  if (error) throw error;
+  const ids = Array.from(new Set((roleRows ?? []).map((r) => r.user_id)));
+  if (ids.length === 0) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", ids)
+    .order("full_name");
+  return (data ?? []) as ProfileLite[];
+}
+
+export interface Cidade {
+  id: string;
+  nome: string;
+}
+export interface Bairro {
+  id: string;
+  nome: string;
+  cidade_id: string;
+}
+export interface Setor {
+  id: string;
+  nome: string;
+  bairro_id: string;
+}
+
+export async function fetchLocalidades() {
+  const [cidades, bairros, setores] = await Promise.all([
+    supabase.from("cidades").select("*").order("nome"),
+    supabase.from("bairros").select("*").order("nome"),
+    supabase.from("setores").select("*").order("nome"),
+  ]);
+  return {
+    cidades: (cidades.data ?? []) as Cidade[],
+    bairros: (bairros.data ?? []) as Bairro[],
+    setores: (setores.data ?? []) as Setor[],
+  };
+}
