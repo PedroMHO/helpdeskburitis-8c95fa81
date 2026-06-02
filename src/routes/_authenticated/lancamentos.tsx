@@ -64,6 +64,7 @@ function Lancamentos() {
     if (!titulo.trim()) return toast.error("Informe o título.");
     if (!solicitante) return toast.error("Selecione o solicitante.");
     if (!setorId) return toast.error("A localidade (setor) é obrigatória.");
+    if (agendado && !scheduledAt) return toast.error("Informe a data do agendamento.");
     setBusy(true);
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
@@ -72,7 +73,8 @@ function Lancamentos() {
       solicitante_id: solicitante,
       created_by: user.id,
       tecnico_id: tecnico || null,
-      status: tecnico ? "em_atendimento" : "aguardando",
+      status: agendado ? "agendado" : "aguardando",
+      scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       cidade_id: cidadeId || null,
       bairro_id: bairroId || null,
       setor_id: setorId,
