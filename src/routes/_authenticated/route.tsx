@@ -50,6 +50,12 @@ const NAV: NavItem[] = [
     show: ({ isAdmin }) => isAdmin,
   },
   {
+    to: "/usuarios",
+    label: "Usuários",
+    icon: Users,
+    show: ({ isAdmin }) => isAdmin,
+  },
+  {
     to: "/config",
     label: "Configurações",
     icon: Settings,
