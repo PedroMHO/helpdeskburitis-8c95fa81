@@ -84,6 +84,8 @@ function Lancamentos() {
     toast.success("Chamado lançado com sucesso!");
     setTitulo("");
     setDescricao("");
+    setAgendado(false);
+    setScheduledAt("");
     qc.invalidateQueries({ queryKey: ["tickets"] });
   };
 
