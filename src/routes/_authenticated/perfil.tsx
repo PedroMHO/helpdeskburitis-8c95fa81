@@ -182,8 +182,8 @@ function Perfil() {
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatório Diário</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Exporta um arquivo CSV com todos os chamados finalizados por você hoje,
-          incluindo as observações de fechamento.
+          Exporta um arquivo Excel com os chamados finalizados por você hoje:
+          título, setor, horário, data e técnico responsável.
         </p>
         <Button className="mt-4" onClick={exportReport} disabled={exporting}>
           {exporting ? (
