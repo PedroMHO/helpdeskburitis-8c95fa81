@@ -56,11 +56,14 @@ function NovoChamado() {
     e.preventDefault();
     if (!user) return;
     if (!titulo.trim()) return toast.error("Informe o título do chamado.");
+    if (agendado && !scheduledAt) return toast.error("Informe a data do agendamento.");
     setBusy(true);
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
       descricao: descricao.trim(),
       priority,
+      status: agendado ? "agendado" : "aguardando",
+      scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       solicitante_id: user.id,
       created_by: user.id,
       cidade_id: cidadeId || null,
