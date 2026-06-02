@@ -141,6 +141,50 @@ function Usuarios() {
         </p>
       </div>
 
+      <form
+        onSubmit={handleCreate}
+        className="space-y-4 rounded-xl border bg-card p-4 shadow-sm sm:p-6"
+      >
+        <div className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold text-foreground">Criar novo usuário</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome completo</Label>
+            <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="senha">Senha</Label>
+            <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} minLength={6} maxLength={72} placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div className="space-y-2">
+            <Label>Permissão</Label>
+            <Select value={novoRole} onValueChange={(v) => setNovoRole(v as AppRole)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="usuario">Usuário Comum</SelectItem>
+                <SelectItem value="tecnico">Técnico</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={creating}>
+            {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+            Criar Usuário
+          </Button>
+        </div>
+      </form>
+
+
       <section className="rounded-xl border bg-card p-2 shadow-sm sm:p-4">
         {isLoading ? (
           <div className="flex justify-center py-10">
