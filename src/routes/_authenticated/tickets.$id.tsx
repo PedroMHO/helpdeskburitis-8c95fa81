@@ -194,6 +194,17 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["tickets"] });
   };
 
+  const excluir = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase.from("tickets").delete().eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado excluído!");
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    navigate({ to: "/tickets" });
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/tickets" })}>
