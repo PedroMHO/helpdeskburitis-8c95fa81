@@ -233,6 +233,14 @@ function TicketDetail() {
               {new Date(ticket.created_at).toLocaleString("pt-BR")}
             </span>
           </div>
+          {ticket.scheduled_at && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-4 w-4" /> Agendado para:{" "}
+              <span className="font-medium text-foreground">
+                {new Date(ticket.scheduled_at).toLocaleString("pt-BR")}
+              </span>
+            </div>
+          )}
         </div>
 
         {ticket.status === "finalizado" && (
