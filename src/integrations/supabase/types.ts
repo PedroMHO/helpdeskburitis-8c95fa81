@@ -14,16 +14,295 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bairros: {
+        Row: {
+          cidade_id: string
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          cidade_id: string
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          cidade_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bairros_cidade_id_fkey"
+            columns: ["cidade_id"]
+            isOneToOne: false
+            referencedRelation: "cidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cidades: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cargo_setor: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo_setor?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo_setor?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      setores: {
+        Row: {
+          bairro_id: string
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          bairro_id: string
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          bairro_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setores_bairro_id_fkey"
+            columns: ["bairro_id"]
+            isOneToOne: false
+            referencedRelation: "bairros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          from_status: Database["public"]["Enums"]["ticket_status"] | null
+          id: string
+          note: string | null
+          ticket_id: string
+          to_status: Database["public"]["Enums"]["ticket_status"]
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["ticket_status"] | null
+          id?: string
+          note?: string | null
+          ticket_id: string
+          to_status: Database["public"]["Enums"]["ticket_status"]
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["ticket_status"] | null
+          id?: string
+          note?: string | null
+          ticket_id?: string
+          to_status?: Database["public"]["Enums"]["ticket_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          bairro_id: string | null
+          cidade_id: string | null
+          closed_at: string | null
+          closing_image_url: string | null
+          closing_note: string | null
+          created_at: string
+          created_by: string
+          descricao: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          setor_id: string | null
+          solicitante_id: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          tecnico_id: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          bairro_id?: string | null
+          cidade_id?: string | null
+          closed_at?: string | null
+          closing_image_url?: string | null
+          closing_note?: string | null
+          created_at?: string
+          created_by: string
+          descricao?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          setor_id?: string | null
+          solicitante_id: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          tecnico_id?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          bairro_id?: string | null
+          cidade_id?: string | null
+          closed_at?: string | null
+          closing_image_url?: string | null
+          closing_note?: string | null
+          created_at?: string
+          created_by?: string
+          descricao?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          setor_id?: string | null
+          solicitante_id?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          tecnico_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_bairro_id_fkey"
+            columns: ["bairro_id"]
+            isOneToOne: false
+            referencedRelation: "bairros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_cidade_id_fkey"
+            columns: ["cidade_id"]
+            isOneToOne: false
+            referencedRelation: "cidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_solicitante_id_fkey"
+            columns: ["solicitante_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "tecnico" | "usuario"
+      ticket_priority: "baixa" | "media" | "alta"
+      ticket_status: "aguardando" | "em_atendimento" | "finalizado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +429,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "tecnico", "usuario"],
+      ticket_priority: ["baixa", "media", "alta"],
+      ticket_status: ["aguardando", "em_atendimento", "finalizado"],
+    },
   },
 } as const
