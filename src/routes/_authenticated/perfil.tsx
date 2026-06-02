@@ -18,9 +18,6 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 
-function csvEscape(v: string) {
-  return `"${v.replace(/"/g, '""')}"`;
-}
 
 function Perfil() {
   const { user, profile, roles, refresh } = useAuth();
