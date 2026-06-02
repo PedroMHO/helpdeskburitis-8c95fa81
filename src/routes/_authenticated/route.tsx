@@ -38,6 +38,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: () => true },
   { to: "/tickets", label: "Chamados", icon: Ticket, show: () => true },
+  { to: "/historico", label: "Histórico", icon: History, show: () => true },
   {
     to: "/tickets/novo",
     label: "Abrir Chamado",
