@@ -274,52 +274,88 @@ function TicketDetail() {
           </div>
         )}
 
-        {canManage && ticket.status !== "finalizado" && (
+        {(canManage || (isOwner && ticket.status !== "finalizado") || canDelete) && (
           <div className="mt-6 space-y-4 border-t pt-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Alterar status</Label>
-                <Select
-                  value={ticket.status}
-                  onValueChange={(v) => mudarStatus(v as TicketStatus)}
-                  disabled={busy}
-                >
-                  <SelectTrigger className="w-52">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="aguardando">
-                      {STATUS_LABEL.aguardando}
-                    </SelectItem>
-                    <SelectItem value="em_atendimento">
-                      {STATUS_LABEL.em_atendimento}
-                    </SelectItem>
-                    <SelectItem value="finalizado">
-                      {STATUS_LABEL.finalizado}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+            {canManage && ticket.status !== "finalizado" && (
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Alterar status</Label>
+                  <Select
+                    value={ticket.status}
+                    onValueChange={(v) => mudarStatus(v as TicketStatus)}
+                    disabled={busy}
+                  >
+                    <SelectTrigger className="w-52">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aguardando">
+                        {STATUS_LABEL.aguardando}
+                      </SelectItem>
+                      <SelectItem value="em_atendimento">
+                        {STATUS_LABEL.em_atendimento}
+                      </SelectItem>
+                      <SelectItem value="finalizado">
+                        {STATUS_LABEL.finalizado}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex flex-wrap gap-2">
-              {ticket.status === "aguardando" && (
+              {canManage && ticket.status === "aguardando" && (
                 <Button onClick={assumir} disabled={busy}>
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   <Wrench className="h-4 w-4" /> Assumir Chamado
                 </Button>
               )}
-              <Button variant="outline" onClick={() => setScheduling(true)}>
-                <Calendar className="h-4 w-4" /> Agendar
-              </Button>
-              <Button onClick={() => setFinalizing(true)}>
-                <CheckCircle2 className="h-4 w-4" /> Finalizar Chamado
-              </Button>
+              {canManage && ticket.status !== "finalizado" && (
+                <Button variant="outline" onClick={() => setScheduling(true)}>
+                  <Calendar className="h-4 w-4" /> Agendar
+                </Button>
+              )}
+              {ticket.status !== "finalizado" && (
+                <Button onClick={() => setFinalizing(true)}>
+                  <CheckCircle2 className="h-4 w-4" /> Dar Baixa
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setDeleting(true)}
+                  disabled={busy}
+                >
+                  <Trash2 className="h-4 w-4" /> Excluir
+                </Button>
+              )}
             </div>
           </div>
         )}
       </div>
 
+      <AlertDialog open={deleting} onOpenChange={setDeleting}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir chamado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O chamado será removido permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={excluir}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={scheduling} onOpenChange={setScheduling}>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Agendar Chamado</DialogTitle>
