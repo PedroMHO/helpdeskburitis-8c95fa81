@@ -38,6 +38,8 @@ function Lancamentos() {
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [solicitante, setSolicitante] = useState("");
   const [tecnico, setTecnico] = useState("");
+  const [agendado, setAgendado] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [cidadeId, setCidadeId] = useState("");
   const [bairroId, setBairroId] = useState("");
   const [setorId, setSetorId] = useState("");
@@ -62,6 +64,7 @@ function Lancamentos() {
     if (!titulo.trim()) return toast.error("Informe o título.");
     if (!solicitante) return toast.error("Selecione o solicitante.");
     if (!setorId) return toast.error("A localidade (setor) é obrigatória.");
+    if (agendado && !scheduledAt) return toast.error("Informe a data do agendamento.");
     setBusy(true);
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
@@ -70,7 +73,8 @@ function Lancamentos() {
       solicitante_id: solicitante,
       created_by: user.id,
       tecnico_id: tecnico || null,
-      status: tecnico ? "em_atendimento" : "aguardando",
+      status: agendado ? "agendado" : "aguardando",
+      scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       cidade_id: cidadeId || null,
       bairro_id: bairroId || null,
       setor_id: setorId,
@@ -80,6 +84,8 @@ function Lancamentos() {
     toast.success("Chamado lançado com sucesso!");
     setTitulo("");
     setDescricao("");
+    setAgendado(false);
+    setScheduledAt("");
     qc.invalidateQueries({ queryKey: ["tickets"] });
   };
 
@@ -143,6 +149,43 @@ function Lancamentos() {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+          <Label>Status inicial</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={agendado ? "outline" : "default"}
+              size="sm"
+              onClick={() => setAgendado(false)}
+            >
+              Aguardando
+            </Button>
+            <Button
+              type="button"
+              variant={agendado ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAgendado(true)}
+            >
+              Agendar Chamado
+            </Button>
+          </div>
+          {agendado && (
+            <div className="space-y-2">
+              <Label htmlFor="sched">Data do agendamento</Label>
+              <Input
+                id="sched"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ao chegar a data, o chamado passa automaticamente para prioridade Alta.
+              </p>
+            </div>
+          )}
+        </div>
+
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
