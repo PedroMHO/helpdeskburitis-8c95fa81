@@ -53,7 +53,7 @@ function Dashboard() {
     (t) => t.priority === "alta" && t.status !== "finalizado",
   ).length;
 
-  const recentes = tickets.slice(0, 6);
+  const recentes = tickets.filter((t) => t.status !== "finalizado").slice(0, 6);
 
   return (
     <div className="space-y-6">

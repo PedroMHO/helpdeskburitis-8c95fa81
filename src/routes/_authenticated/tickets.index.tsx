@@ -39,6 +39,7 @@ function TicketsList() {
   const filtered = useMemo(
     () =>
       tickets.filter((t) => {
+        if (t.status === "finalizado") return false;
         if (status !== "all" && t.status !== status) return false;
         if (priority !== "all" && t.priority !== priority) return false;
         if (q && !t.titulo.toLowerCase().includes(q.toLowerCase())) return false;
@@ -82,11 +83,13 @@ function TicketsList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            {(Object.keys(STATUS_LABEL) as TicketStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>
-                {STATUS_LABEL[s]}
-              </SelectItem>
-            ))}
+            {(Object.keys(STATUS_LABEL) as TicketStatus[])
+              .filter((s) => s !== "finalizado")
+              .map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABEL[s]}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Select value={priority} onValueChange={setPriority}>
