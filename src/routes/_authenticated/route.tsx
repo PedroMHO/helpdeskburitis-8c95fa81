@@ -175,5 +175,3 @@ function AuthenticatedLayout() {
     </div>
   );
 }
-
-void roles;
