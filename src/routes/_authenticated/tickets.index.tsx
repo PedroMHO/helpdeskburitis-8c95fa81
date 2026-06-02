@@ -83,11 +83,13 @@ function TicketsList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            {(Object.keys(STATUS_LABEL) as TicketStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>
-                {STATUS_LABEL[s]}
-              </SelectItem>
-            ))}
+            {(Object.keys(STATUS_LABEL) as TicketStatus[])
+              .filter((s) => s !== "finalizado")
+              .map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABEL[s]}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Select value={priority} onValueChange={setPriority}>
