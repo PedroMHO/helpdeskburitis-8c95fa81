@@ -94,25 +94,127 @@ function Perfil() {
         setExporting(false);
         return;
       }
-      const setorNome = (id: string | null) =>
-        loc.setores.find((s) => s.id === id)?.nome ?? "Não informado";
+
+      const localidadeTexto = (t: (typeof mine)[number]) => {
+        const setor = loc.setores.find((s) => s.id === t.setor_id);
+        const bairro = loc.bairros.find((b) => b.id === t.bairro_id);
+        const cidade = loc.cidades.find((c) => c.id === t.cidade_id);
+        const parts = [setor?.nome, bairro?.nome, cidade?.nome].filter(Boolean);
+        return parts.length ? parts.join(" / ") : "Não informado";
+      };
       const tecnicoNome = (id: string | null) =>
         profiles.find((p) => p.id === id)?.full_name ?? "Não atribuído";
-      const data = mine.map((t) => {
-        const d = new Date(t.closed_at!);
-        return {
-          "Título": t.titulo,
-          "Setor": setorNome(t.setor_id),
-          "Horário": d.toLocaleTimeString("pt-BR"),
-          "Data": d.toLocaleDateString("pt-BR"),
-          "Técnico Responsável": tecnicoNome(t.tecnico_id),
-        };
+      const statusLabel = (s: string) =>
+        ({
+          aguardando: "Aguardando",
+          em_atendimento: "Em Atendimento",
+          finalizado: "Finalizado",
+          agendado: "Agendado",
+        })[s] ?? s;
+      const dt = (iso: string | null) => (iso ? new Date(iso) : null);
+      const dataBR = (d: Date | null) => (d ? d.toLocaleDateString("pt-BR") : "");
+      const horaBR = (d: Date | null) =>
+        d ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+      const headers = [
+        "Título do Chamado",
+        "Setor / Localidade",
+        "Técnico Responsável",
+        "Data de Abertura",
+        "Hora de Abertura",
+        "Data de Finalização",
+        "Hora de Finalização",
+        "Status Atual",
+        "Observações de Conclusão",
+      ];
+      const rows = mine.map((t) => {
+        const abertura = dt(t.created_at);
+        const fim = dt(t.closed_at);
+        return [
+          t.titulo,
+          localidadeTexto(t),
+          tecnicoNome(t.tecnico_id),
+          dataBR(abertura),
+          horaBR(abertura),
+          dataBR(fim),
+          horaBR(fim),
+          statusLabel(t.status),
+          t.closing_note ?? "",
+        ];
       });
-      const ws = XLSX.utils.json_to_sheet(data);
-      ws["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }];
+
+      const aoa = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      ws["!cols"] = [
+        { wch: 32 }, // Título
+        { wch: 30 }, // Setor / Localidade
+        { wch: 24 }, // Técnico
+        { wch: 16 }, // Data Abertura
+        { wch: 14 }, // Hora Abertura
+        { wch: 18 }, // Data Finalização
+        { wch: 16 }, // Hora Finalização
+        { wch: 16 }, // Status
+        { wch: 45 }, // Observações
+      ];
+
+      const headerStyle = {
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+        fill: { fgColor: { rgb: "1F3864" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: {
+          top: { style: "thin", color: { rgb: "163057" } },
+          bottom: { style: "thin", color: { rgb: "163057" } },
+          left: { style: "thin", color: { rgb: "163057" } },
+          right: { style: "thin", color: { rgb: "163057" } },
+        },
+      };
+      // column index → horizontal alignment for body cells
+      const centerCols = new Set([3, 4, 5, 6, 7]);
+      const wrapCols = new Set([0, 1, 8]);
+
+      const range = XLSX.utils.decode_range(ws["!ref"]!);
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const addr = XLSX.utils.encode_cell({ r: R, c: C });
+          const cell = ws[addr];
+          if (!cell) continue;
+          if (R === 0) {
+            cell.s = headerStyle;
+            continue;
+          }
+          const horizontal = centerCols.has(C)
+            ? "center"
+            : "left";
+          cell.s = {
+            alignment: {
+              horizontal,
+              vertical: "center",
+              wrapText: wrapCols.has(C),
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "D9D9D9" } },
+              bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+              left: { style: "thin", color: { rgb: "D9D9D9" } },
+              right: { style: "thin", color: { rgb: "D9D9D9" } },
+            },
+          };
+          // highlight "Finalizado" status cell in light green
+          if (C === 7 && cell.v === "Finalizado") {
+            cell.s.fill = { fgColor: { rgb: "C6EFCE" } };
+            cell.s.font = { color: { rgb: "1E7B34" }, bold: true };
+          }
+        }
+      }
+
+      ws["!rows"] = aoa.map((_, i) => ({ hpt: i === 0 ? 26 : 20 }));
+
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Chamados");
-      XLSX.writeFile(wb, `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Relatório Diário");
+      XLSX.writeFile(
+        wb,
+        `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`,
+      );
       toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
     } finally {
       setExporting(false);
