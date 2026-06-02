@@ -1,0 +1,198 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Loader2, Upload, FileDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { fetchTickets } from "@/lib/data";
+import { signedUrl } from "@/lib/helpdesk";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export const Route = createFileRoute("/_authenticated/perfil")({
+  head: () => ({ meta: [{ title: "Meu Perfil — Chamados Informática Buritis" }] }),
+  component: Perfil,
+});
+
+function csvEscape(v: string) {
+  return `"${v.replace(/"/g, '""')}"`;
+}
+
+function Perfil() {
+  const { user, profile, roles, refresh } = useAuth();
+  const qc = useQueryClient();
+  const [fullName, setFullName] = useState("");
+  const [cargo, setCargo] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name);
+      setCargo(profile.cargo_setor ?? "");
+      if (profile.avatar_url)
+        signedUrl("avatars", profile.avatar_url).then(setAvatarUrl);
+    }
+  }, [profile]);
+
+  const save = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: fullName, cargo_setor: cargo })
+      .eq("id", user.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Perfil atualizado!");
+    await refresh();
+    qc.invalidateQueries({ queryKey: ["profiles"] });
+  };
+
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f || !user) return;
+    setUploading(true);
+    const ext = f.name.split(".").pop() || "jpg";
+    const path = `${user.id}/avatar.${ext}`;
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(path, f, { upsert: true });
+    if (error) {
+      setUploading(false);
+      return toast.error("Erro no upload", { description: error.message });
+    }
+    await supabase.from("profiles").update({ avatar_url: path }).eq("id", user.id);
+    setAvatarUrl(await signedUrl("avatars", path));
+    setUploading(false);
+    toast.success("Foto atualizada!");
+    await refresh();
+  };
+
+  const exportReport = async () => {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const all = await fetchTickets();
+      const today = new Date().toDateString();
+      const mine = all.filter(
+        (t) =>
+          t.status === "finalizado" &&
+          t.closed_at &&
+          new Date(t.closed_at).toDateString() === today &&
+          (t.tecnico_id === user.id || t.solicitante_id === user.id),
+      );
+      if (mine.length === 0) {
+        toast.info("Nenhum chamado finalizado por você hoje.");
+        setExporting(false);
+        return;
+      }
+      const header = ["ID", "Título", "Prioridade", "Fechado em", "Observação de Fechamento"];
+      const rows = mine.map((t) =>
+        [
+          t.id,
+          t.titulo,
+          t.priority,
+          new Date(t.closed_at!).toLocaleString("pt-BR"),
+          t.closing_note ?? "",
+        ]
+          .map((c) => csvEscape(String(c)))
+          .join(","),
+      );
+      const csv = "\uFEFF" + [header.map(csvEscape).join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `relatorio-diario-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const roleLabel = roles.includes("admin")
+    ? "Administrador"
+    : roles.includes("tecnico")
+      ? "Técnico"
+      : "Usuário Comum";
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <h1 className="text-2xl font-bold text-foreground">Meu Perfil</h1>
+
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-20 w-20">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+            <AvatarFallback className="text-lg">
+              {fullName.slice(0, 2).toUpperCase() || "US"}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-semibold text-foreground">{fullName || "Usuário"}</p>
+            <p className="text-sm text-muted-foreground">{profile?.email}</p>
+            <span className="mt-1 inline-block rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+              {roleLabel}
+            </span>
+            <div className="mt-3">
+              <Button variant="outline" size="sm" asChild disabled={uploading}>
+                <label className="cursor-pointer">
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  Trocar foto
+                  <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
+                </label>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-4 border-t pt-5">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nome completo</Label>
+            <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" value={profile?.email ?? ""} disabled />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cargo">Cargo / Setor</Label>
+            <Input id="cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
+          </div>
+          <Button onClick={save} disabled={busy}>
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            Salvar alterações
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="font-semibold text-foreground">Relatório Diário</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Exporta um arquivo CSV com todos os chamados finalizados por você hoje,
+          incluindo as observações de fechamento.
+        </p>
+        <Button className="mt-4" onClick={exportReport} disabled={exporting}>
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4" />
+          )}
+          Exportar Relatório Diário
+        </Button>
+      </div>
+    </div>
+  );
+}
