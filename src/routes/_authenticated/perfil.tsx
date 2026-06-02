@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Upload, FileDown } from "lucide-react";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchTickets } from "@/lib/data";
+import { fetchTickets, fetchProfiles, fetchLocalidades } from "@/lib/data";
 import { signedUrl } from "@/lib/helpdesk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +18,6 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 
-function csvEscape(v: string) {
-  return `"${v.replace(/"/g, '""')}"`;
-}
 
 function Perfil() {
   const { user, profile, roles, refresh } = useAuth();
@@ -78,7 +76,11 @@ function Perfil() {
     if (!user) return;
     setExporting(true);
     try {
-      const all = await fetchTickets();
+      const [all, profiles, loc] = await Promise.all([
+        fetchTickets(),
+        fetchProfiles(),
+        fetchLocalidades(),
+      ]);
       const today = new Date().toDateString();
       const mine = all.filter(
         (t) =>
@@ -92,26 +94,25 @@ function Perfil() {
         setExporting(false);
         return;
       }
-      const header = ["ID", "Título", "Prioridade", "Fechado em", "Observação de Fechamento"];
-      const rows = mine.map((t) =>
-        [
-          t.id,
-          t.titulo,
-          t.priority,
-          new Date(t.closed_at!).toLocaleString("pt-BR"),
-          t.closing_note ?? "",
-        ]
-          .map((c) => csvEscape(String(c)))
-          .join(","),
-      );
-      const csv = "\uFEFF" + [header.map(csvEscape).join(","), ...rows].join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio-diario-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const setorNome = (id: string | null) =>
+        loc.setores.find((s) => s.id === id)?.nome ?? "Não informado";
+      const tecnicoNome = (id: string | null) =>
+        profiles.find((p) => p.id === id)?.full_name ?? "Não atribuído";
+      const data = mine.map((t) => {
+        const d = new Date(t.closed_at!);
+        return {
+          "Título": t.titulo,
+          "Setor": setorNome(t.setor_id),
+          "Horário": d.toLocaleTimeString("pt-BR"),
+          "Data": d.toLocaleDateString("pt-BR"),
+          "Técnico Responsável": tecnicoNome(t.tecnico_id),
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Chamados");
+      XLSX.writeFile(wb, `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`);
       toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
     } finally {
       setExporting(false);
@@ -181,8 +182,8 @@ function Perfil() {
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatório Diário</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Exporta um arquivo CSV com todos os chamados finalizados por você hoje,
-          incluindo as observações de fechamento.
+          Exporta um arquivo Excel com os chamados finalizados por você hoje:
+          título, setor, horário, data e técnico responsável.
         </p>
         <Button className="mt-4" onClick={exportReport} disabled={exporting}>
           {exporting ? (
