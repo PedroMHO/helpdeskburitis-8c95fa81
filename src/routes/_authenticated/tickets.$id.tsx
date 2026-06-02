@@ -27,6 +27,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { STATUS_LABEL, type TicketStatus } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/_authenticated/tickets/$id")({
   head: () => ({ meta: [{ title: "Chamado — Chamados Informática Buritis" }] }),
@@ -57,6 +65,8 @@ function TicketDetail() {
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
@@ -107,6 +117,43 @@ function TicketDetail() {
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado assumido!");
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
+  const mudarStatus = async (novo: TicketStatus) => {
+    if (!user || novo === ticket.status) return;
+    if (novo === "finalizado") {
+      setFinalizing(true);
+      return;
+    }
+    setBusy(true);
+    const patch: { status: TicketStatus; tecnico_id?: string } = { status: novo };
+    if (novo === "em_atendimento" && !ticket.tecnico_id) patch.tecnico_id = user.id;
+    const { error } = await supabase
+      .from("tickets")
+      .update(patch)
+      .eq("id", ticket.id);
+    if (!error) await recordHistory(ticket.status, novo);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
+  const agendar = async () => {
+    if (!user) return;
+    if (!scheduleAt) return toast.error("Selecione a data e hora do agendamento.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ scheduled_at: new Date(scheduleAt).toISOString() })
+      .eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado agendado!");
+    setScheduling(false);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
   };
@@ -186,6 +233,14 @@ function TicketDetail() {
               {new Date(ticket.created_at).toLocaleString("pt-BR")}
             </span>
           </div>
+          {ticket.scheduled_at && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-4 w-4" /> Agendado para:{" "}
+              <span className="font-medium text-foreground">
+                {new Date(ticket.scheduled_at).toLocaleString("pt-BR")}
+              </span>
+            </div>
+          )}
         </div>
 
         {ticket.status === "finalizado" && (
@@ -207,21 +262,75 @@ function TicketDetail() {
         )}
 
         {canManage && ticket.status !== "finalizado" && (
-          <div className="mt-6 flex flex-wrap gap-2 border-t pt-4">
-            {ticket.status === "aguardando" && (
-              <Button onClick={assumir} disabled={busy}>
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                <Wrench className="h-4 w-4" /> Assumir Chamado
+          <div className="mt-6 space-y-4 border-t pt-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Alterar status</Label>
+                <Select
+                  value={ticket.status}
+                  onValueChange={(v) => mudarStatus(v as TicketStatus)}
+                  disabled={busy}
+                >
+                  <SelectTrigger className="w-52">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="aguardando">
+                      {STATUS_LABEL.aguardando}
+                    </SelectItem>
+                    <SelectItem value="em_atendimento">
+                      {STATUS_LABEL.em_atendimento}
+                    </SelectItem>
+                    <SelectItem value="finalizado">
+                      {STATUS_LABEL.finalizado}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ticket.status === "aguardando" && (
+                <Button onClick={assumir} disabled={busy}>
+                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <Wrench className="h-4 w-4" /> Assumir Chamado
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setScheduling(true)}>
+                <Calendar className="h-4 w-4" /> Agendar
               </Button>
-            )}
-            {ticket.status === "em_atendimento" && (
               <Button onClick={() => setFinalizing(true)}>
                 <CheckCircle2 className="h-4 w-4" /> Finalizar Chamado
               </Button>
-            )}
+            </div>
           </div>
         )}
       </div>
+
+      <Dialog open={scheduling} onOpenChange={setScheduling}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendar Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="schedule">Data e hora do atendimento</Label>
+            <Input
+              id="schedule"
+              type="datetime-local"
+              value={scheduleAt}
+              onChange={(e) => setScheduleAt(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScheduling(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={agendar} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Agendamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={finalizing} onOpenChange={setFinalizing}>
         <DialogContent>

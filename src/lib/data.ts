@@ -16,6 +16,7 @@ export interface TicketRow {
   closing_note: string | null;
   closing_image_url: string | null;
   closed_at: string | null;
+  scheduled_at: string | null;
   created_at: string;
 }
 
