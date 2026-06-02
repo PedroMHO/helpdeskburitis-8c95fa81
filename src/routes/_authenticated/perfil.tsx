@@ -79,7 +79,11 @@ function Perfil() {
     if (!user) return;
     setExporting(true);
     try {
-      const all = await fetchTickets();
+      const [all, profiles, loc] = await Promise.all([
+        fetchTickets(),
+        fetchProfiles(),
+        fetchLocalidades(),
+      ]);
       const today = new Date().toDateString();
       const mine = all.filter(
         (t) =>
@@ -93,26 +97,25 @@ function Perfil() {
         setExporting(false);
         return;
       }
-      const header = ["ID", "Título", "Prioridade", "Fechado em", "Observação de Fechamento"];
-      const rows = mine.map((t) =>
-        [
-          t.id,
-          t.titulo,
-          t.priority,
-          new Date(t.closed_at!).toLocaleString("pt-BR"),
-          t.closing_note ?? "",
-        ]
-          .map((c) => csvEscape(String(c)))
-          .join(","),
-      );
-      const csv = "\uFEFF" + [header.map(csvEscape).join(","), ...rows].join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio-diario-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const setorNome = (id: string | null) =>
+        loc.setores.find((s) => s.id === id)?.nome ?? "Não informado";
+      const tecnicoNome = (id: string | null) =>
+        profiles.find((p) => p.id === id)?.full_name ?? "Não atribuído";
+      const data = mine.map((t) => {
+        const d = new Date(t.closed_at!);
+        return {
+          "Título": t.titulo,
+          "Setor": setorNome(t.setor_id),
+          "Horário": d.toLocaleTimeString("pt-BR"),
+          "Data": d.toLocaleDateString("pt-BR"),
+          "Técnico Responsável": tecnicoNome(t.tecnico_id),
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Chamados");
+      XLSX.writeFile(wb, `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`);
       toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
     } finally {
       setExporting(false);
