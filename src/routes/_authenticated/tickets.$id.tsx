@@ -196,6 +196,7 @@ function TicketDetail() {
         closing_note: note.trim(),
         closing_image_url: path,
         closed_at: new Date().toISOString(),
+        closed_by: user.id,
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
       .eq("id", ticket.id);
