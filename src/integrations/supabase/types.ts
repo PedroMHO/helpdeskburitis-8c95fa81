@@ -170,6 +170,7 @@ export type Database = {
           bairro_id: string | null
           cidade_id: string | null
           closed_at: string | null
+          closed_by: string | null
           closing_image_url: string | null
           closing_note: string | null
           created_at: string
@@ -189,6 +190,7 @@ export type Database = {
           bairro_id?: string | null
           cidade_id?: string | null
           closed_at?: string | null
+          closed_by?: string | null
           closing_image_url?: string | null
           closing_note?: string | null
           created_at?: string
@@ -208,6 +210,7 @@ export type Database = {
           bairro_id?: string | null
           cidade_id?: string | null
           closed_at?: string | null
+          closed_by?: string | null
           closing_image_url?: string | null
           closing_note?: string | null
           created_at?: string
