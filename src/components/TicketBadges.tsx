@@ -35,6 +35,7 @@ export function PriorityBadge({
 
 const statusClasses: Record<TicketStatus, string> = {
   aguardando: "bg-status-aguardando/15 text-status-aguardando",
+  agendado: "bg-primary/15 text-primary",
   em_atendimento: "bg-status-atendimento/15 text-status-atendimento",
   finalizado: "bg-status-finalizado/15 text-status-finalizado",
 };

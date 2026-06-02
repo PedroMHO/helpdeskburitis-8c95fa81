@@ -36,6 +36,8 @@ function NovoChamado() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("media");
+  const [agendado, setAgendado] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [cidadeId, setCidadeId] = useState<string>("");
   const [bairroId, setBairroId] = useState<string>("");
   const [setorId, setSetorId] = useState<string>("");
@@ -54,11 +56,14 @@ function NovoChamado() {
     e.preventDefault();
     if (!user) return;
     if (!titulo.trim()) return toast.error("Informe o título do chamado.");
+    if (agendado && !scheduledAt) return toast.error("Informe a data do agendamento.");
     setBusy(true);
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
       descricao: descricao.trim(),
       priority,
+      status: agendado ? "agendado" : "aguardando",
+      scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       solicitante_id: user.id,
       created_by: user.id,
       cidade_id: cidadeId || null,
@@ -104,6 +109,42 @@ function NovoChamado() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+          <Label>Status inicial</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={agendado ? "outline" : "default"}
+              size="sm"
+              onClick={() => setAgendado(false)}
+            >
+              Aguardando
+            </Button>
+            <Button
+              type="button"
+              variant={agendado ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAgendado(true)}
+            >
+              Agendado
+            </Button>
+          </div>
+          {agendado && (
+            <div className="space-y-2">
+              <Label htmlFor="sched">Data do agendamento</Label>
+              <Input
+                id="sched"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ao chegar a data, o chamado passa automaticamente para prioridade Alta.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
