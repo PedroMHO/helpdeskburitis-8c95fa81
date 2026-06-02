@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ticket, Clock, Wrench, CheckCircle2, AlertTriangle } from "lucide-react";
-import { fetchTickets } from "@/lib/data";
+import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,12 @@ function Dashboard() {
     queryKey: ["tickets"],
     queryFn: fetchTickets,
   });
+  const { data: localidades } = useQuery({
+    queryKey: ["localidades"],
+    queryFn: fetchLocalidades,
+  });
+  const setorNome = (id: string | null) =>
+    id ? localidades?.setores.find((s) => s.id === id)?.nome ?? null : null;
 
   const aguardando = tickets.filter((t) => t.status === "aguardando").length;
   const andamento = tickets.filter((t) => t.status === "em_atendimento").length;
@@ -102,6 +108,11 @@ function Dashboard() {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-foreground">{t.titulo}</p>
+                    {setorNome(t.setor_id) && (
+                      <p className="truncate text-xs font-medium text-primary">
+                        {setorNome(t.setor_id)}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {new Date(t.created_at).toLocaleString("pt-BR")}
                     </p>
