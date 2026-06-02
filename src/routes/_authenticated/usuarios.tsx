@@ -78,6 +78,43 @@ function Usuarios() {
     enabled: isAdmin,
   });
 
+  const createUser = useServerFn(createUserAccount);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [novoRole, setNovoRole] = useState<AppRole>("usuario");
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nome.trim() || !email.trim() || senha.length < 6) {
+      return toast.error("Preencha nome, e-mail e senha (mín. 6 caracteres).");
+    }
+    setCreating(true);
+    try {
+      await createUser({
+        data: {
+          full_name: nome.trim(),
+          email: email.trim(),
+          password: senha,
+          role: novoRole,
+        },
+      });
+      toast.success("Usuário criado com sucesso!");
+      setNome("");
+      setEmail("");
+      setSenha("");
+      setNovoRole("usuario");
+      qc.invalidateQueries({ queryKey: ["users-roles"] });
+    } catch (err) {
+      toast.error("Erro ao criar usuário", {
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const changeRole = async (userId: string, newRole: AppRole) => {
     // Replace all roles with the single selected role.
     const { error: delErr } = await supabase
