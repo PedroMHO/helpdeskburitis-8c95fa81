@@ -1,11 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Shield, Wrench, User as UserIcon, Loader2 } from "lucide-react";
+import { Shield, Wrench, User as UserIcon, Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
+import { createUserAccount } from "@/lib/admin-users.functions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -74,6 +78,43 @@ function Usuarios() {
     enabled: isAdmin,
   });
 
+  const createUser = useServerFn(createUserAccount);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [novoRole, setNovoRole] = useState<AppRole>("usuario");
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nome.trim() || !email.trim() || senha.length < 6) {
+      return toast.error("Preencha nome, e-mail e senha (mín. 6 caracteres).");
+    }
+    setCreating(true);
+    try {
+      await createUser({
+        data: {
+          full_name: nome.trim(),
+          email: email.trim(),
+          password: senha,
+          role: novoRole,
+        },
+      });
+      toast.success("Usuário criado com sucesso!");
+      setNome("");
+      setEmail("");
+      setSenha("");
+      setNovoRole("usuario");
+      qc.invalidateQueries({ queryKey: ["users-roles"] });
+    } catch (err) {
+      toast.error("Erro ao criar usuário", {
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const changeRole = async (userId: string, newRole: AppRole) => {
     // Replace all roles with the single selected role.
     const { error: delErr } = await supabase
@@ -99,6 +140,50 @@ function Usuarios() {
           Promova usuários a Técnico ou Administrador.
         </p>
       </div>
+
+      <form
+        onSubmit={handleCreate}
+        className="space-y-4 rounded-xl border bg-card p-4 shadow-sm sm:p-6"
+      >
+        <div className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold text-foreground">Criar novo usuário</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome completo</Label>
+            <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="senha">Senha</Label>
+            <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} minLength={6} maxLength={72} placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div className="space-y-2">
+            <Label>Permissão</Label>
+            <Select value={novoRole} onValueChange={(v) => setNovoRole(v as AppRole)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="usuario">Usuário Comum</SelectItem>
+                <SelectItem value="tecnico">Técnico</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={creating}>
+            {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+            Criar Usuário
+          </Button>
+        </div>
+      </form>
+
 
       <section className="rounded-xl border bg-card p-2 shadow-sm sm:p-4">
         {isLoading ? (
