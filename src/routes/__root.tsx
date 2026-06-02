@@ -79,20 +79,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Chamados Informática Buritis" },
+      { title: "Chamados TI Buritis" },
       {
         name: "description",
         content:
           "Sistema corporativo de helpdesk para abertura e gestão de chamados de informática.",
       },
       { name: "author", content: "Informática Buritis" },
-      { property: "og:title", content: "Chamados Informática Buritis" },
+      { property: "og:title", content: "Chamados TI Buritis" },
       {
         property: "og:description",
         content: "Sistema corporativo de helpdesk de chamados de informática.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Chamados TI Buritis" },
+      { name: "description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
+      { property: "og:description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
+      { name: "twitter:description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7607b4e4-4757-4496-afb8-dbf3ba13732d/id-preview-65225baf--63b600f8-cc04-4e1b-915f-c730fa15d328.lovable.app-1780434165872.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7607b4e4-4757-4496-afb8-dbf3ba13732d/id-preview-65225baf--63b600f8-cc04-4e1b-915f-c730fa15d328.lovable.app-1780434165872.png" },
     ],
     links: [
       {
