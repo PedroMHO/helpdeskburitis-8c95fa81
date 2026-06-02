@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ticket, Clock, Wrench, CheckCircle2, AlertTriangle } from "lucide-react";
-import { fetchTickets } from "@/lib/data";
+import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { cn } from "@/lib/utils";
