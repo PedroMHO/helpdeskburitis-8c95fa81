@@ -284,8 +284,9 @@ function Perfil() {
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatório Diário</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Exporta um arquivo Excel com os chamados finalizados por você hoje:
-          título, setor, horário, data e técnico responsável.
+          Exporta uma planilha Excel (.xlsx) formatada com os chamados
+          finalizados por você hoje: título, setor/localidade, técnico, datas e
+          horas de abertura e finalização, status e observações.
         </p>
         <Button className="mt-4" onClick={exportReport} disabled={exporting}>
           {exporting ? (
