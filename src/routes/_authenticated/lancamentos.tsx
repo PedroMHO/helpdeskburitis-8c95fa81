@@ -150,6 +150,43 @@ function Lancamentos() {
           </Select>
         </div>
 
+        <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+          <Label>Status inicial</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={agendado ? "outline" : "default"}
+              size="sm"
+              onClick={() => setAgendado(false)}
+            >
+              Aguardando
+            </Button>
+            <Button
+              type="button"
+              variant={agendado ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAgendado(true)}
+            >
+              Agendar Chamado
+            </Button>
+          </div>
+          {agendado && (
+            <div className="space-y-2">
+              <Label htmlFor="sched">Data do agendamento</Label>
+              <Input
+                id="sched"
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ao chegar a data, o chamado passa automaticamente para prioridade Alta.
+              </p>
+            </div>
+          )}
+        </div>
+
+
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <Label>Cidade *</Label>
