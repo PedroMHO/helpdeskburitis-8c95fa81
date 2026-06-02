@@ -38,6 +38,8 @@ function Lancamentos() {
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [solicitante, setSolicitante] = useState("");
   const [tecnico, setTecnico] = useState("");
+  const [agendado, setAgendado] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [cidadeId, setCidadeId] = useState("");
   const [bairroId, setBairroId] = useState("");
   const [setorId, setSetorId] = useState("");
