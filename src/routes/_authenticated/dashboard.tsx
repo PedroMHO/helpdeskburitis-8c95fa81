@@ -45,6 +45,12 @@ function Dashboard() {
     queryKey: ["tickets"],
     queryFn: fetchTickets,
   });
+  const { data: localidades } = useQuery({
+    queryKey: ["localidades"],
+    queryFn: fetchLocalidades,
+  });
+  const setorNome = (id: string | null) =>
+    id ? localidades?.setores.find((s) => s.id === id)?.nome ?? null : null;
 
   const aguardando = tickets.filter((t) => t.status === "aguardando").length;
   const andamento = tickets.filter((t) => t.status === "em_atendimento").length;
