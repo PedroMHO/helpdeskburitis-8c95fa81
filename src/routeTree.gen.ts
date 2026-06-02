@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedLancamentosRouteImport } from './routes/_authenticated/lancamentos'
@@ -39,6 +40,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTicketsRoute = AuthenticatedTicketsRouteImport.update({
   id: '/tickets',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/_authenticated/lancamentos': typeof AuthenticatedLancamentosRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/_authenticated/tickets/novo': typeof AuthenticatedTicketsNovoRoute
 }
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/lancamentos'
     | '/perfil'
     | '/tickets'
+    | '/usuarios'
     | '/tickets/$id'
     | '/tickets/novo'
   fileRoutesByTo: FileRoutesByTo
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/lancamentos'
     | '/perfil'
     | '/tickets'
+    | '/usuarios'
     | '/tickets/$id'
     | '/tickets/novo'
   id:
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_authenticated/lancamentos'
     | '/_authenticated/perfil'
     | '/_authenticated/tickets'
+    | '/_authenticated/usuarios'
     | '/_authenticated/tickets/$id'
     | '/_authenticated/tickets/novo'
   fileRoutesById: FileRoutesById
@@ -192,6 +204,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tickets': {
       id: '/_authenticated/tickets'
@@ -264,6 +283,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLancamentosRoute: typeof AuthenticatedLancamentosRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -272,6 +292,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLancamentosRoute: AuthenticatedLancamentosRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

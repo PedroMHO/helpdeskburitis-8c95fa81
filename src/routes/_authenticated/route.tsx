@@ -12,6 +12,7 @@ import {
   Ticket,
   PlusCircle,
   User,
+  Users,
   Settings,
   ClipboardList,
   LogOut,
@@ -47,6 +48,12 @@ const NAV: NavItem[] = [
     to: "/lancamentos",
     label: "Lançamentos",
     icon: ClipboardList,
+    show: ({ isAdmin }) => isAdmin,
+  },
+  {
+    to: "/usuarios",
+    label: "Usuários",
+    icon: Users,
     show: ({ isAdmin }) => isAdmin,
   },
   {
