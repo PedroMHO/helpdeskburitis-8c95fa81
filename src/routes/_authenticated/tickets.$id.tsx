@@ -65,6 +65,8 @@ function TicketDetail() {
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
