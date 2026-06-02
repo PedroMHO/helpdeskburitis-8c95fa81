@@ -196,6 +196,7 @@ function TicketDetail() {
         closing_note: note.trim(),
         closing_image_url: path,
         closed_at: new Date().toISOString(),
+        closed_by: user.id,
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
       .eq("id", ticket.id);
@@ -275,6 +276,15 @@ function TicketDetail() {
             </p>
             <p className="mt-2 whitespace-pre-wrap text-sm text-foreground/90">
               {ticket.closing_note}
+            </p>
+            <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <UserIcon className="h-3.5 w-3.5" /> Finalizado por:{" "}
+              <span className="font-medium text-foreground">
+                {name(ticket.closed_by ?? ticket.tecnico_id)}
+              </span>
+              {ticket.closed_at && (
+                <span> · {new Date(ticket.closed_at).toLocaleString("pt-BR")}</span>
+              )}
             </p>
             {proofUrl && (
               <img
