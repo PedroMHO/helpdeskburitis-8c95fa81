@@ -27,6 +27,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { STATUS_LABEL, type TicketStatus } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/_authenticated/tickets/$id")({
   head: () => ({ meta: [{ title: "Chamado — Chamados Informática Buritis" }] }),
