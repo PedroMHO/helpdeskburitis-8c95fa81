@@ -41,7 +41,12 @@ interface UserRow {
   role: AppRole;
 }
 
-const ROLE_RANK: Record<AppRole, number> = { admin: 3, tecnico: 2, usuario: 1 };
+const ROLE_RANK: Record<AppRole, number> = {
+  admin: 4,
+  tecnico: 3,
+  atendente: 2,
+  usuario: 1,
+};
 
 async function fetchUsers(): Promise<UserRow[]> {
   const [{ data: profiles, error: pErr }, { data: roleRows, error: rErr }] =
@@ -68,10 +73,30 @@ async function fetchUsers(): Promise<UserRow[]> {
   );
 }
 
-const ROLE_META: Record<AppRole, { label: string; icon: typeof Shield }> = {
-  admin: { label: "Administrador", icon: Shield },
-  tecnico: { label: "Técnico", icon: Wrench },
-  usuario: { label: "Usuário Comum", icon: UserIcon },
+const ROLE_META: Record<
+  AppRole,
+  { label: string; icon: typeof Shield; perms: string }
+> = {
+  admin: {
+    label: "Administrador",
+    icon: Shield,
+    perms: "Acesso total: gerencia usuários, permissões, configurações e todos os chamados.",
+  },
+  tecnico: {
+    label: "Técnico",
+    icon: Wrench,
+    perms: "Atende e finaliza chamados, visualiza todos os chamados.",
+  },
+  atendente: {
+    label: "Atendente",
+    icon: Headset,
+    perms: "Lança e agenda chamados em nome dos usuários.",
+  },
+  usuario: {
+    label: "Usuário Comum",
+    icon: UserIcon,
+    perms: "Abre os próprios chamados e acompanha o atendimento.",
+  },
 };
 
 function Usuarios() {
