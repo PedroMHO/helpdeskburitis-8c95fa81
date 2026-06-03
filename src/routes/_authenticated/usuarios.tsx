@@ -223,10 +223,12 @@ function Usuarios() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="usuario">Usuário Comum</SelectItem>
+                <SelectItem value="atendente">Atendente</SelectItem>
                 <SelectItem value="tecnico">Técnico</SelectItem>
                 <SelectItem value="admin">Administrador</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">{ROLE_META[novoRole].perms}</p>
           </div>
         </div>
         <div className="flex justify-end">
