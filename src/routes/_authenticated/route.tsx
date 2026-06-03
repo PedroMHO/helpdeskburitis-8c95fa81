@@ -69,7 +69,7 @@ const NAV: NavItem[] = [
 ];
 
 function AuthenticatedLayout() {
-  const { user, loading, profile, isAdmin, isTecnico, signOut } =
+  const { user, loading, profile, isAdmin, isTecnico, isAtendente, signOut } =
     useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -95,9 +95,11 @@ function AuthenticatedLayout() {
     ? "Administrador"
     : isTecnico
       ? "Técnico"
-      : "Usuário Comum";
+      : isAtendente
+        ? "Atendente"
+        : "Usuário Comum";
 
-  const items = NAV.filter((i) => i.show({ isAdmin, isTecnico }));
+  const items = NAV.filter((i) => i.show({ isAdmin, isTecnico, isAtendente }));
 
   return (
     <div className="flex min-h-screen bg-background">
