@@ -267,21 +267,61 @@ function Usuarios() {
                       <Meta.icon className="h-3 w-3" />
                       {Meta.label}
                     </span>
+                    <p className="mt-0.5 text-xs text-muted-foreground/80">{Meta.perms}</p>
                   </div>
-                  <Select
-                    value={u.role}
-                    onValueChange={(v) => changeRole(u.id, v as AppRole)}
-                    disabled={isSelf}
-                  >
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="usuario">Usuário Comum</SelectItem>
-                      <SelectItem value="tecnico">Técnico</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={u.role}
+                      onValueChange={(v) => changeRole(u.id, v as AppRole)}
+                      disabled={isSelf}
+                    >
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="usuario">Usuário Comum</SelectItem>
+                        <SelectItem value="atendente">Atendente</SelectItem>
+                        <SelectItem value="tecnico">Técnico</SelectItem>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          disabled={isSelf || deletingId === u.id}
+                          title="Excluir usuário"
+                        >
+                          {deletingId === u.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. A conta de{" "}
+                            <strong>{u.full_name || u.email}</strong> será removida
+                            permanentemente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(u.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </li>
               );
             })}
