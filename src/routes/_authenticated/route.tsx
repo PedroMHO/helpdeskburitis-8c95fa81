@@ -33,7 +33,7 @@ interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  show: (a: { isAdmin: boolean; isTecnico: boolean }) => boolean;
+  show: (a: { isAdmin: boolean; isTecnico: boolean; isAtendente: boolean }) => boolean;
 }
 
 const NAV: NavItem[] = [
@@ -44,13 +44,14 @@ const NAV: NavItem[] = [
     to: "/tickets/novo",
     label: "Abrir Chamado",
     icon: PlusCircle,
-    show: ({ isAdmin, isTecnico }) => !isAdmin && !isTecnico,
+    show: ({ isAdmin, isTecnico, isAtendente }) =>
+      !isAdmin && !isTecnico && !isAtendente,
   },
   {
     to: "/lancamentos",
     label: "Lançamentos",
     icon: ClipboardList,
-    show: ({ isAdmin }) => isAdmin,
+    show: ({ isAdmin, isAtendente }) => isAdmin || isAtendente,
   },
   {
     to: "/usuarios",
