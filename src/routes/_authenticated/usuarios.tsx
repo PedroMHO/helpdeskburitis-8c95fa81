@@ -115,11 +115,13 @@ function Usuarios() {
   });
 
   const createUser = useServerFn(createUserAccount);
+  const deleteUser = useServerFn(deleteUserAccount);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [novoRole, setNovoRole] = useState<AppRole>("usuario");
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +168,21 @@ function Usuarios() {
 
     toast.success("Permissão atualizada.");
     qc.invalidateQueries({ queryKey: ["users-roles"] });
+  };
+
+  const handleDelete = async (userId: string) => {
+    setDeletingId(userId);
+    try {
+      await deleteUser({ data: { user_id: userId } });
+      toast.success("Usuário excluído com sucesso.");
+      qc.invalidateQueries({ queryKey: ["users-roles"] });
+    } catch (err) {
+      toast.error("Erro ao excluir usuário", {
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
