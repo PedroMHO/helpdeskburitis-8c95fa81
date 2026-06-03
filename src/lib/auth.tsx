@@ -8,7 +8,7 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "tecnico" | "usuario";
+export type AppRole = "admin" | "tecnico" | "usuario" | "atendente";
 
 export interface Profile {
   id: string;
@@ -26,6 +26,7 @@ interface AuthState {
   loading: boolean;
   isAdmin: boolean;
   isTecnico: boolean;
+  isAtendente: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -91,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         isAdmin: roles.includes("admin"),
         isTecnico: roles.includes("tecnico"),
+        isAtendente: roles.includes("atendente"),
         refresh,
         signOut,
       }}
