@@ -33,7 +33,7 @@ interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  show: (a: { isAdmin: boolean; isTecnico: boolean }) => boolean;
+  show: (a: { isAdmin: boolean; isTecnico: boolean; isAtendente: boolean }) => boolean;
 }
 
 const NAV: NavItem[] = [
@@ -44,13 +44,14 @@ const NAV: NavItem[] = [
     to: "/tickets/novo",
     label: "Abrir Chamado",
     icon: PlusCircle,
-    show: ({ isAdmin, isTecnico }) => !isAdmin && !isTecnico,
+    show: ({ isAdmin, isTecnico, isAtendente }) =>
+      !isAdmin && !isTecnico && !isAtendente,
   },
   {
     to: "/lancamentos",
     label: "Lançamentos",
     icon: ClipboardList,
-    show: ({ isAdmin }) => isAdmin,
+    show: ({ isAdmin, isAtendente }) => isAdmin || isAtendente,
   },
   {
     to: "/usuarios",
@@ -68,7 +69,7 @@ const NAV: NavItem[] = [
 ];
 
 function AuthenticatedLayout() {
-  const { user, loading, profile, isAdmin, isTecnico, signOut } =
+  const { user, loading, profile, isAdmin, isTecnico, isAtendente, signOut } =
     useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -94,9 +95,11 @@ function AuthenticatedLayout() {
     ? "Administrador"
     : isTecnico
       ? "Técnico"
-      : "Usuário Comum";
+      : isAtendente
+        ? "Atendente"
+        : "Usuário Comum";
 
-  const items = NAV.filter((i) => i.show({ isAdmin, isTecnico }));
+  const items = NAV.filter((i) => i.show({ isAdmin, isTecnico, isAtendente }));
 
   return (
     <div className="flex min-h-screen bg-background">

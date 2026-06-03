@@ -6,7 +6,7 @@ const createUserSchema = z.object({
   full_name: z.string().trim().min(1).max(120),
   email: z.string().trim().email().max(255),
   password: z.string().min(6).max(72),
-  role: z.enum(["usuario", "tecnico", "admin"]),
+  role: z.enum(["usuario", "tecnico", "admin", "atendente"]),
 });
 
 export const createUserAccount = createServerFn({ method: "POST" })
@@ -44,4 +44,34 @@ export const createUserAccount = createServerFn({ method: "POST" })
     if (insErr) throw new Error(insErr.message);
 
     return { id: newUserId };
+  });
+
+const deleteUserSchema = z.object({
+  user_id: z.string().uuid(),
+});
+
+export const deleteUserAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => deleteUserSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    // Only admins may delete users.
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Apenas administradores podem excluir usuários.");
+    if (data.user_id === userId)
+      throw new Error("Você não pode excluir a sua própria conta.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(
+      data.user_id,
+    );
+    if (delErr) throw new Error(delErr.message);
+
+    return { id: data.user_id };
   });

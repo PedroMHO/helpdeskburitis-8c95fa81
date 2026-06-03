@@ -3,13 +3,24 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Shield, Wrench, User as UserIcon, Loader2, UserPlus } from "lucide-react";
+import { Shield, Wrench, User as UserIcon, Loader2, UserPlus, Headset, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
-import { createUserAccount } from "@/lib/admin-users.functions";
+import { createUserAccount, deleteUserAccount } from "@/lib/admin-users.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -30,7 +41,12 @@ interface UserRow {
   role: AppRole;
 }
 
-const ROLE_RANK: Record<AppRole, number> = { admin: 3, tecnico: 2, usuario: 1 };
+const ROLE_RANK: Record<AppRole, number> = {
+  admin: 4,
+  tecnico: 3,
+  atendente: 2,
+  usuario: 1,
+};
 
 async function fetchUsers(): Promise<UserRow[]> {
   const [{ data: profiles, error: pErr }, { data: roleRows, error: rErr }] =
@@ -57,10 +73,30 @@ async function fetchUsers(): Promise<UserRow[]> {
   );
 }
 
-const ROLE_META: Record<AppRole, { label: string; icon: typeof Shield }> = {
-  admin: { label: "Administrador", icon: Shield },
-  tecnico: { label: "Técnico", icon: Wrench },
-  usuario: { label: "Usuário Comum", icon: UserIcon },
+const ROLE_META: Record<
+  AppRole,
+  { label: string; icon: typeof Shield; perms: string }
+> = {
+  admin: {
+    label: "Administrador",
+    icon: Shield,
+    perms: "Acesso total: gerencia usuários, permissões, configurações e todos os chamados.",
+  },
+  tecnico: {
+    label: "Técnico",
+    icon: Wrench,
+    perms: "Atende e finaliza chamados, visualiza todos os chamados.",
+  },
+  atendente: {
+    label: "Atendente",
+    icon: Headset,
+    perms: "Lança e agenda chamados em nome dos usuários.",
+  },
+  usuario: {
+    label: "Usuário Comum",
+    icon: UserIcon,
+    perms: "Abre os próprios chamados e acompanha o atendimento.",
+  },
 };
 
 function Usuarios() {
@@ -79,11 +115,13 @@ function Usuarios() {
   });
 
   const createUser = useServerFn(createUserAccount);
+  const deleteUser = useServerFn(deleteUserAccount);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [novoRole, setNovoRole] = useState<AppRole>("usuario");
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,6 +170,21 @@ function Usuarios() {
     qc.invalidateQueries({ queryKey: ["users-roles"] });
   };
 
+  const handleDelete = async (userId: string) => {
+    setDeletingId(userId);
+    try {
+      await deleteUser({ data: { user_id: userId } });
+      toast.success("Usuário excluído com sucesso.");
+      qc.invalidateQueries({ queryKey: ["users-roles"] });
+    } catch (err) {
+      toast.error("Erro ao excluir usuário", {
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
@@ -170,10 +223,12 @@ function Usuarios() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="usuario">Usuário Comum</SelectItem>
+                <SelectItem value="atendente">Atendente</SelectItem>
                 <SelectItem value="tecnico">Técnico</SelectItem>
                 <SelectItem value="admin">Administrador</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">{ROLE_META[novoRole].perms}</p>
           </div>
         </div>
         <div className="flex justify-end">
@@ -212,21 +267,61 @@ function Usuarios() {
                       <Meta.icon className="h-3 w-3" />
                       {Meta.label}
                     </span>
+                    <p className="mt-0.5 text-xs text-muted-foreground/80">{Meta.perms}</p>
                   </div>
-                  <Select
-                    value={u.role}
-                    onValueChange={(v) => changeRole(u.id, v as AppRole)}
-                    disabled={isSelf}
-                  >
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="usuario">Usuário Comum</SelectItem>
-                      <SelectItem value="tecnico">Técnico</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={u.role}
+                      onValueChange={(v) => changeRole(u.id, v as AppRole)}
+                      disabled={isSelf}
+                    >
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="usuario">Usuário Comum</SelectItem>
+                        <SelectItem value="atendente">Atendente</SelectItem>
+                        <SelectItem value="tecnico">Técnico</SelectItem>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          disabled={isSelf || deletingId === u.id}
+                          title="Excluir usuário"
+                        >
+                          {deletingId === u.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. A conta de{" "}
+                            <strong>{u.full_name || u.email}</strong> será removida
+                            permanentemente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(u.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </li>
               );
             })}
