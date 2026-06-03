@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/lancamentos")({
 });
 
 function Lancamentos() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isAtendente, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -46,8 +46,9 @@ function Lancamentos() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true });
-  }, [isAdmin, loading, navigate]);
+    if (!loading && !isAdmin && !isAtendente)
+      navigate({ to: "/dashboard", replace: true });
+  }, [isAdmin, isAtendente, loading, navigate]);
 
   const bairros = useMemo(
     () => (loc?.bairros ?? []).filter((b) => b.cidade_id === cidadeId),
