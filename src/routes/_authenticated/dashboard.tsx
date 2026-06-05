@@ -54,12 +54,17 @@ function Dashboard() {
 
   const aguardando = tickets.filter((t) => t.status === "aguardando").length;
   const andamento = tickets.filter((t) => t.status === "em_atendimento").length;
+  const manutencao = tickets.filter((t) => t.status === "em_manutencao").length;
   const finalizados = tickets.filter((t) => t.status === "finalizado").length;
-  const alta = tickets.filter(
-    (t) => t.priority === "alta" && t.status !== "finalizado",
-  ).length;
 
-  const recentes = tickets.filter((t) => t.status !== "finalizado").slice(0, 6);
+  // Recentes: somente chamados em aberto reais — exclui finalizados,
+  // agendados (aba própria) e em manutenção (aba própria).
+  const recentes = tickets
+    .filter(
+      (t) =>
+        t.status === "aguardando" || t.status === "em_atendimento",
+    )
+    .slice(0, 6);
 
   return (
     <div className="space-y-6">
