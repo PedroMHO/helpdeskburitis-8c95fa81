@@ -16,6 +16,8 @@ import {
   Users,
   Settings,
   ClipboardList,
+  CalendarClock,
+  Wrench,
   LogOut,
   Menu,
   Loader2,
