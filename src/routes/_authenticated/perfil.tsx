@@ -108,6 +108,7 @@ function Perfil() {
         ({
           aguardando: "Aguardando",
           em_atendimento: "Em Atendimento",
+          em_manutencao: "Em Manutenção",
           finalizado: "Finalizado",
           agendado: "Agendado",
         })[s] ?? s;
@@ -146,17 +147,19 @@ function Perfil() {
       const aoa = [headers, ...rows];
       const ws = XLSX.utils.aoa_to_sheet(aoa);
 
-      ws["!cols"] = [
-        { wch: 32 }, // Título
-        { wch: 30 }, // Setor / Localidade
-        { wch: 24 }, // Técnico
-        { wch: 16 }, // Data Abertura
-        { wch: 14 }, // Hora Abertura
-        { wch: 18 }, // Data Finalização
-        { wch: 16 }, // Hora Finalização
-        { wch: 16 }, // Status
-        { wch: 45 }, // Observações
+      // Larguras (em caracteres). Observações bem mais larga para reduzir quebras.
+      const colWidths = [
+        32, // Título
+        34, // Setor / Localidade
+        24, // Técnico
+        16, // Data Abertura
+        14, // Hora Abertura
+        18, // Data Finalização
+        16, // Hora Finalização
+        16, // Status
+        50, // Observações de Conclusão
       ];
+      ws["!cols"] = colWidths.map((wch) => ({ wch }));
 
       const headerStyle = {
         font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
@@ -173,8 +176,20 @@ function Perfil() {
       const centerCols = new Set([3, 4, 5, 6, 7]);
       const wrapCols = new Set([0, 1, 8]);
 
+      // Estima quantas linhas visuais o texto ocupará dada a largura da coluna.
+      const estimateLines = (text: string, colWidth: number) => {
+        if (!text) return 1;
+        // ~90% da largura é útil para caracteres médios
+        const perLine = Math.max(8, Math.floor(colWidth * 0.95));
+        return text
+          .split("\n")
+          .reduce((acc, seg) => acc + Math.max(1, Math.ceil(seg.length / perLine)), 0);
+      };
+
       const range = XLSX.utils.decode_range(ws["!ref"]!);
+      const rowHeights: { hpt: number }[] = [];
       for (let R = range.s.r; R <= range.e.r; R++) {
+        let maxLines = 1;
         for (let C = range.s.c; C <= range.e.c; C++) {
           const addr = XLSX.utils.encode_cell({ r: R, c: C });
           const cell = ws[addr];
@@ -183,14 +198,13 @@ function Perfil() {
             cell.s = headerStyle;
             continue;
           }
-          const horizontal = centerCols.has(C)
-            ? "center"
-            : "left";
+          const isWrap = wrapCols.has(C);
+          const horizontal = centerCols.has(C) ? "center" : "left";
           cell.s = {
             alignment: {
               horizontal,
               vertical: "center",
-              wrapText: wrapCols.has(C),
+              wrapText: isWrap,
             },
             border: {
               top: { style: "thin", color: { rgb: "D9D9D9" } },
@@ -199,15 +213,27 @@ function Perfil() {
               right: { style: "thin", color: { rgb: "D9D9D9" } },
             },
           };
+          if (isWrap) {
+            maxLines = Math.max(
+              maxLines,
+              estimateLines(String(cell.v ?? ""), colWidths[C]),
+            );
+          }
           // highlight "Finalizado" status cell in light green
           if (C === 7 && cell.v === "Finalizado") {
             cell.s.fill = { fgColor: { rgb: "C6EFCE" } };
             cell.s.font = { color: { rgb: "1E7B34" }, bold: true };
           }
         }
+        if (R === 0) {
+          rowHeights.push({ hpt: 26 });
+        } else {
+          // ~15pt por linha de texto, mínimo 20pt, sem teto fixo para
+          // comportar todo o conteúdo quebrado.
+          rowHeights.push({ hpt: Math.max(20, maxLines * 15 + 6) });
+        }
       }
-
-      ws["!rows"] = aoa.map((_, i) => ({ hpt: i === 0 ? 26 : 20 }));
+      ws["!rows"] = rowHeights;
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Relatório Diário");

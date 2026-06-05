@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 });
 
 function TicketsList() {
-  const { isAdmin, isTecnico } = useAuth();
+  const { isAdmin } = useAuth();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
@@ -39,7 +39,10 @@ function TicketsList() {
   const filtered = useMemo(
     () =>
       tickets.filter((t) => {
-        if (t.status === "finalizado") return false;
+        // Lista geral mostra apenas chamados em aberto reais.
+        // Agendados e Em Manutenção têm abas próprias.
+        if (t.status !== "aguardando" && t.status !== "em_atendimento")
+          return false;
         if (status !== "all" && t.status !== status) return false;
         if (priority !== "all" && t.priority !== priority) return false;
         if (q && !t.titulo.toLowerCase().includes(q.toLowerCase())) return false;
@@ -57,7 +60,7 @@ function TicketsList() {
             {filtered.length} chamado(s) listado(s)
           </p>
         </div>
-        {!isAdmin && !isTecnico && (
+        {!isAdmin && (
           <Button asChild>
             <Link to="/tickets/novo">
               <PlusCircle className="h-4 w-4" />
@@ -83,13 +86,11 @@ function TicketsList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            {(Object.keys(STATUS_LABEL) as TicketStatus[])
-              .filter((s) => s !== "finalizado")
-              .map((s) => (
-                <SelectItem key={s} value={s}>
-                  {STATUS_LABEL[s]}
-                </SelectItem>
-              ))}
+            {(["aguardando", "em_atendimento"] as TicketStatus[]).map((s) => (
+              <SelectItem key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={priority} onValueChange={setPriority}>

@@ -314,8 +314,14 @@ function TicketDetail() {
                       <SelectItem value="aguardando">
                         {STATUS_LABEL.aguardando}
                       </SelectItem>
+                      <SelectItem value="agendado">
+                        {STATUS_LABEL.agendado}
+                      </SelectItem>
                       <SelectItem value="em_atendimento">
                         {STATUS_LABEL.em_atendimento}
+                      </SelectItem>
+                      <SelectItem value="em_manutencao">
+                        {STATUS_LABEL.em_manutencao}
                       </SelectItem>
                       <SelectItem value="finalizado">
                         {STATUS_LABEL.finalizado}

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Ticket, Clock, Wrench, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
 import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
@@ -54,12 +54,17 @@ function Dashboard() {
 
   const aguardando = tickets.filter((t) => t.status === "aguardando").length;
   const andamento = tickets.filter((t) => t.status === "em_atendimento").length;
+  const manutencao = tickets.filter((t) => t.status === "em_manutencao").length;
   const finalizados = tickets.filter((t) => t.status === "finalizado").length;
-  const alta = tickets.filter(
-    (t) => t.priority === "alta" && t.status !== "finalizado",
-  ).length;
 
-  const recentes = tickets.filter((t) => t.status !== "finalizado").slice(0, 6);
+  // Recentes: somente chamados em aberto reais — exclui finalizados,
+  // agendados (aba própria) e em manutenção (aba própria).
+  const recentes = tickets
+    .filter(
+      (t) =>
+        t.status === "aguardando" || t.status === "em_atendimento",
+    )
+    .slice(0, 6);
 
   return (
     <div className="space-y-6">
@@ -80,7 +85,7 @@ function Dashboard() {
         <StatCard label="Aguardando" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
         <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
         <StatCard label="Finalizados" value={finalizados} icon={CheckCircle2} accent="bg-status-finalizado/15 text-status-finalizado" />
-        <StatCard label="Prioridade Alta" value={alta} icon={AlertTriangle} accent="bg-priority-alta/15 text-priority-alta" />
+        <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm">

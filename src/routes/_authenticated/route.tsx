@@ -16,6 +16,8 @@ import {
   Users,
   Settings,
   ClipboardList,
+  CalendarClock,
+  Wrench,
   LogOut,
   Menu,
   Loader2,
@@ -39,19 +41,30 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: () => true },
   { to: "/tickets", label: "Chamados", icon: Ticket, show: () => true },
+  {
+    to: "/agendados",
+    label: "Chamados Agendados",
+    icon: CalendarClock,
+    show: () => true,
+  },
+  {
+    to: "/manutencao",
+    label: "Em Manutenção",
+    icon: Wrench,
+    show: () => true,
+  },
   { to: "/historico", label: "Histórico", icon: History, show: () => true },
   {
     to: "/tickets/novo",
     label: "Abrir Chamado",
     icon: PlusCircle,
-    show: ({ isAdmin, isTecnico, isAtendente }) =>
-      !isAdmin && !isTecnico && !isAtendente,
+    show: ({ isAdmin }) => !isAdmin,
   },
   {
     to: "/lancamentos",
-    label: "Lançamentos",
+    label: "Lançamentos (Admin)",
     icon: ClipboardList,
-    show: ({ isAdmin, isAtendente }) => isAdmin || isAtendente,
+    show: ({ isAdmin }) => isAdmin,
   },
   {
     to: "/usuarios",
