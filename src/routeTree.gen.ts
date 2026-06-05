@@ -21,6 +21,7 @@ import { Route as AuthenticatedLancamentosRouteImport } from './routes/_authenti
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
+import { Route as AuthenticatedAgendadosRouteImport } from './routes/_authenticated/agendados'
 import { Route as AuthenticatedTicketsIndexRouteImport } from './routes/_authenticated/tickets.index'
 import { Route as AuthenticatedTicketsNovoRouteImport } from './routes/_authenticated/tickets.novo'
 import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authenticated/tickets.$id'
@@ -85,6 +86,11 @@ const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgendadosRoute = AuthenticatedAgendadosRouteImport.update({
+  id: '/agendados',
+  path: '/agendados',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTicketsIndexRoute =
   AuthenticatedTicketsIndexRouteImport.update({
     id: '/',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/agendados': typeof AuthenticatedAgendadosRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/agendados': typeof AuthenticatedAgendadosRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/agendados': typeof AuthenticatedAgendadosRoute
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
+    | '/agendados'
     | '/config'
     | '/dashboard'
     | '/historico'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
+    | '/agendados'
     | '/config'
     | '/dashboard'
     | '/historico'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/sitemap.xml'
+    | '/_authenticated/agendados'
     | '/_authenticated/config'
     | '/_authenticated/dashboard'
     | '/_authenticated/historico'
@@ -296,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agendados': {
+      id: '/_authenticated/agendados'
+      path: '/agendados'
+      fullPath: '/agendados'
+      preLoaderRoute: typeof AuthenticatedAgendadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tickets/': {
       id: '/_authenticated/tickets/'
       path: '/'
@@ -336,6 +355,7 @@ const AuthenticatedTicketsRouteWithChildren =
   AuthenticatedTicketsRoute._addFileChildren(AuthenticatedTicketsRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgendadosRoute: typeof AuthenticatedAgendadosRoute
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
@@ -347,6 +367,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgendadosRoute: AuthenticatedAgendadosRoute,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
