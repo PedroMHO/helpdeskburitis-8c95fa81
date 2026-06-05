@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 });
 
 function TicketsList() {
-  const { isAdmin, isTecnico } = useAuth();
+  const { isAdmin } = useAuth();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
