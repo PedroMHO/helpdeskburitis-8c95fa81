@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type TicketStatus = "aguardando" | "agendado" | "em_atendimento" | "finalizado";
+export type TicketStatus =
+  | "aguardando"
+  | "agendado"
+  | "em_atendimento"
+  | "em_manutencao"
+  | "finalizado";
 export type TicketPriority = "baixa" | "media" | "alta";
 
 export const PRIORITY_LABEL: Record<TicketPriority, string> = {
@@ -13,6 +18,7 @@ export const STATUS_LABEL: Record<TicketStatus, string> = {
   aguardando: "Aguardando",
   agendado: "Agendado",
   em_atendimento: "Em Atendimento",
+  em_manutencao: "Em Manutenção",
   finalizado: "Finalizado",
 };
 
