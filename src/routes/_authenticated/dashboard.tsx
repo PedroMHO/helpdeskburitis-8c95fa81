@@ -85,7 +85,7 @@ function Dashboard() {
         <StatCard label="Aguardando" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
         <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
         <StatCard label="Finalizados" value={finalizados} icon={CheckCircle2} accent="bg-status-finalizado/15 text-status-finalizado" />
-        <StatCard label="Prioridade Alta" value={alta} icon={AlertTriangle} accent="bg-priority-alta/15 text-priority-alta" />
+        <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm">
