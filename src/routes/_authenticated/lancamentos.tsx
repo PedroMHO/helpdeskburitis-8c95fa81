@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/lancamentos")({
 });
 
 function Lancamentos() {
-  const { user, isAdmin, isAtendente, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
