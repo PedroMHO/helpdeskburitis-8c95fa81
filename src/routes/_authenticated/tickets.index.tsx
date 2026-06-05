@@ -60,7 +60,7 @@ function TicketsList() {
             {filtered.length} chamado(s) listado(s)
           </p>
         </div>
-        {!isAdmin && !isTecnico && (
+        {!isAdmin && (
           <Button asChild>
             <Link to="/tickets/novo">
               <PlusCircle className="h-4 w-4" />
