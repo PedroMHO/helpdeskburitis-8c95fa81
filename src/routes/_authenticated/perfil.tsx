@@ -108,6 +108,7 @@ function Perfil() {
         ({
           aguardando: "Aguardando",
           em_atendimento: "Em Atendimento",
+          em_manutencao: "Em Manutenção",
           finalizado: "Finalizado",
           agendado: "Agendado",
         })[s] ?? s;
