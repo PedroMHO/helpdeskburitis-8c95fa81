@@ -39,7 +39,10 @@ function TicketsList() {
   const filtered = useMemo(
     () =>
       tickets.filter((t) => {
-        if (t.status === "finalizado") return false;
+        // Lista geral mostra apenas chamados em aberto reais.
+        // Agendados e Em Manutenção têm abas próprias.
+        if (t.status !== "aguardando" && t.status !== "em_atendimento")
+          return false;
         if (status !== "all" && t.status !== status) return false;
         if (priority !== "all" && t.priority !== priority) return false;
         if (q && !t.titulo.toLowerCase().includes(q.toLowerCase())) return false;
