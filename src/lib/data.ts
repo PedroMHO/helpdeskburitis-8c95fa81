@@ -47,12 +47,13 @@ export async function fetchTicket(id: string): Promise<TicketRow | null> {
 }
 
 export async function fetchProfiles(): Promise<ProfileLite[]> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .order("full_name");
+  // Uses a safe directory function that returns names without exposing emails,
+  // so every authenticated user can resolve names for tickets they can see.
+  const { data, error } = await supabase.rpc("profiles_directory");
   if (error) throw error;
-  return (data ?? []) as ProfileLite[];
+  return ((data ?? []) as ProfileLite[]).sort((a, b) =>
+    (a.full_name || "").localeCompare(b.full_name || ""),
+  );
 }
 
 /** Technicians + admins, for assignment dropdowns. */
