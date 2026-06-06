@@ -304,6 +304,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      profiles_directory: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "tecnico" | "usuario" | "atendente"
