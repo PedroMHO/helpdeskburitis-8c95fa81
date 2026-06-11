@@ -84,8 +84,28 @@ function Config() {
     reload();
   };
 
+  const reloadSol = () => qc.invalidateQueries({ queryKey: ["solicitantes"] });
+  const addSolicitante = async () => {
+    if (!solNome.trim() || !solSetor) return toast.error("Informe nome e setor.");
+    const { error } = await supabase
+      .from("solicitantes")
+      .insert({ nome: solNome.trim(), setor_id: solSetor });
+    if (error) return toast.error("Erro", { description: error.message });
+    setSolNome("");
+    toast.success("Solicitante adicionado.");
+    reloadSol();
+  };
+  const removeSolicitante = async (id: string) => {
+    const { error } = await supabase.from("solicitantes").delete().eq("id", id);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Removido.");
+    reloadSol();
+  };
+
   const cidadeNome = (id: string) => loc?.cidades.find((c) => c.id === id)?.nome ?? "";
   const bairroNome = (id: string) => loc?.bairros.find((b) => b.id === id)?.nome ?? "";
+  const setorNome = (id: string | null) =>
+    id ? loc?.setores.find((s) => s.id === id)?.nome ?? "" : "";
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
