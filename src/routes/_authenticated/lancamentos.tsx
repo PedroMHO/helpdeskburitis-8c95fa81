@@ -32,6 +32,7 @@ function Lancamentos() {
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: tecnicos = [] } = useQuery({ queryKey: ["tecnicos"], queryFn: fetchTecnicos });
   const { data: loc } = useQuery({ queryKey: ["localidades"], queryFn: fetchLocalidades });
+  const { data: solicitantesList = [] } = useQuery({ queryKey: ["solicitantes"], queryFn: fetchSolicitantes });
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
