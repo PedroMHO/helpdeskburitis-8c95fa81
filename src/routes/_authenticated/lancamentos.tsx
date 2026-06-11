@@ -78,6 +78,10 @@ function Lancamentos() {
       descricao: descricao.trim(),
       priority,
       solicitante_id: solicitante,
+      solicitante_ref: solicitanteRef || null,
+      solicitante_nome: solicitanteRef
+        ? solicitantesList.find((s) => s.id === solicitanteRef)?.nome ?? null
+        : null,
       created_by: user.id,
       tecnico_id: tecnico || null,
       status: agendado ? "agendado" : "aguardando",
@@ -91,6 +95,7 @@ function Lancamentos() {
     toast.success("Chamado lançado com sucesso!");
     setTitulo("");
     setDescricao("");
+    setSolicitanteRef("");
     setAgendado(false);
     setScheduledAt("");
     qc.invalidateQueries({ queryKey: ["tickets"] });
