@@ -78,7 +78,12 @@ function Perfil() {
     await refresh();
   };
 
-  const exportReport = async () => {
+  const generateReport = async (
+    matcher: (closedAt: Date) => boolean,
+    fileName: string,
+    sheetName: string,
+    emptyMsg: string,
+  ) => {
     if (!user) return;
     setExporting(true);
     try {
@@ -87,16 +92,15 @@ function Perfil() {
         fetchProfiles(),
         fetchLocalidades(),
       ]);
-      const today = new Date().toDateString();
       const mine = all.filter(
         (t) =>
           t.status === "finalizado" &&
           t.closed_at &&
-          new Date(t.closed_at).toDateString() === today &&
+          matcher(new Date(t.closed_at)) &&
           (t.tecnico_id === user.id || t.solicitante_id === user.id),
       );
       if (mine.length === 0) {
-        toast.info("Nenhum chamado finalizado por você hoje.");
+        toast.info(emptyMsg);
         setExporting(false);
         return;
       }
