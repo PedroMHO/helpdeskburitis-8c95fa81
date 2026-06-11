@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchLocalidades } from "@/lib/data";
+import { fetchLocalidades, fetchSolicitantes } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,12 +27,15 @@ function Config() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: loc } = useQuery({ queryKey: ["localidades"], queryFn: fetchLocalidades });
+  const { data: solicitantes } = useQuery({ queryKey: ["solicitantes"], queryFn: fetchSolicitantes });
 
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [bairroCidade, setBairroCidade] = useState("");
   const [setor, setSetor] = useState("");
   const [setorBairro, setSetorBairro] = useState("");
+  const [solNome, setSolNome] = useState("");
+  const [solSetor, setSolSetor] = useState("");
 
   useEffect(() => {
     if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true });
