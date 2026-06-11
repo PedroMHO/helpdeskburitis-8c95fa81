@@ -152,3 +152,17 @@ export async function fetchNotifications(): Promise<NotificationRow[]> {
   if (error) throw error;
   return (data ?? []) as NotificationRow[];
 }
+
+/** Upsert the current technician's live status. */
+export async function setTechnicianStatus(
+  userId: string,
+  status: string,
+  setorId: string | null,
+) {
+  await supabase
+    .from("technician_status")
+    .upsert(
+      { user_id: userId, status, setor_id: setorId, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    );
+}
