@@ -188,6 +188,37 @@ function Config() {
           ))}
         </ul>
       </section>
+
+      {/* Solicitantes */}
+      <section className="rounded-xl border bg-card p-5 shadow-sm">
+        <h2 className="mb-3 font-semibold text-foreground">Solicitantes</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Cadastre nomes de solicitantes vinculados a um setor. Eles ficam disponíveis
+          na abertura de chamados.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+          <Input value={solNome} onChange={(e) => setSolNome(e.target.value)} placeholder="Nome do solicitante" />
+          <Select value={solSetor} onValueChange={setSolSetor}>
+            <SelectTrigger><SelectValue placeholder="Setor" /></SelectTrigger>
+            <SelectContent>
+              {(loc?.setores ?? []).map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.nome} · {bairroNome(s.bairro_id)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={addSolicitante}><Plus className="h-4 w-4" /> Adicionar</Button>
+        </div>
+        <ul className="mt-3 divide-y">
+          {(solicitantes ?? []).map((s) => (
+            <li key={s.id} className="flex items-center justify-between py-2 text-sm">
+              <span>{s.nome} <span className="text-muted-foreground">· {setorNome(s.setor_id)}</span></span>
+              <Button variant="ghost" size="icon" onClick={() => removeSolicitante(s.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
