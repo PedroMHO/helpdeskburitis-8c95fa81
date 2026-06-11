@@ -246,15 +246,32 @@ function Perfil() {
       ws["!rows"] = rowHeights;
 
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Relatório Diário");
-      XLSX.writeFile(
-        wb,
-        `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`,
-      );
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, fileName);
       toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
     } finally {
       setExporting(false);
     }
+  };
+
+  const exportDaily = () => {
+    const target = new Date(reportDate + "T00:00:00").toDateString();
+    generateReport(
+      (d) => d.toDateString() === target,
+      `relatorio-diario-${reportDate}.xlsx`,
+      "Relatório Diário",
+      "Nenhum chamado finalizado por você nesta data.",
+    );
+  };
+
+  const exportMonthly = () => {
+    const [y, mo] = reportMonth.split("-").map(Number);
+    generateReport(
+      (d) => d.getFullYear() === y && d.getMonth() === mo - 1,
+      `relatorio-mensal-${reportMonth}.xlsx`,
+      "Relatório Mensal",
+      "Nenhum chamado finalizado por você neste mês.",
+    );
   };
 
   const roleLabel = roles.includes("admin")
