@@ -28,6 +28,12 @@ function Perfil() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [reportDate, setReportDate] = useState(
+    () => new Date().toISOString().slice(0, 10),
+  );
+  const [reportMonth, setReportMonth] = useState(
+    () => new Date().toISOString().slice(0, 7),
+  );
 
   useEffect(() => {
     if (profile) {
