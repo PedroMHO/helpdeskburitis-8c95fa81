@@ -128,12 +128,23 @@ function TicketDetail() {
       .from("tickets")
       .update({ status: "em_atendimento", tecnico_id: user.id })
       .eq("id", ticket.id);
-    if (!error) await recordHistory("aguardando", "em_atendimento");
+    if (!error) {
+      await recordHistory(ticket.status, "em_atendimento");
+      await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
-    toast.success("Chamado assumido!");
+    toast.success("Chamado iniciado!");
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
+  const syncTechStatus = async (novo: TicketStatus) => {
+    if (!user || !(isAdmin || isTecnico)) return;
+    if (novo === "em_atendimento") await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
+    else if (novo === "em_manutencao") await setTechnicianStatus(user.id, "em_manutencao", null);
+    else await setTechnicianStatus(user.id, "disponivel", null);
   };
 
   const mudarStatus = async (novo: TicketStatus) => {
@@ -149,12 +160,16 @@ function TicketDetail() {
       .from("tickets")
       .update(patch)
       .eq("id", ticket.id);
-    if (!error) await recordHistory(ticket.status, novo);
+    if (!error) {
+      await recordHistory(ticket.status, novo);
+      await syncTechStatus(novo);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
   const agendar = async () => {
