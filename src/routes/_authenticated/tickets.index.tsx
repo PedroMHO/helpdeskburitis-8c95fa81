@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Ticket, PlusCircle, Search } from "lucide-react";
-import { fetchTickets } from "@/lib/data";
+import { toast } from "sonner";
+import { Ticket, PlusCircle, Search, Play } from "lucide-react";
+import { fetchTickets, setTechnicianStatus } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import {
@@ -27,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 });
 
 function TicketsList() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isTecnico, user } = useAuth();
+  const qc = useQueryClient();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
@@ -35,6 +38,38 @@ function TicketsList() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [priority, setPriority] = useState<string>("all");
+  const [iniciandoId, setIniciandoId] = useState<string | null>(null);
+
+  const canManage = isAdmin || isTecnico;
+
+  const iniciar = async (
+    e: React.MouseEvent,
+    ticketId: string,
+    setorId: string | null,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    setIniciandoId(ticketId);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: "em_atendimento", tecnico_id: user.id })
+      .eq("id", ticketId);
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: "aguardando",
+        to_status: "em_atendimento",
+        changed_by: user.id,
+      });
+      await setTechnicianStatus(user.id, "atendendo", setorId);
+    }
+    setIniciandoId(null);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado iniciado!");
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
 
   const filtered = useMemo(
     () =>
@@ -139,6 +174,16 @@ function TicketsList() {
                   {new Date(t.created_at).toLocaleDateString("pt-BR")}
                 </span>
               </div>
+              {canManage && t.status === "aguardando" && (
+                <Button
+                  size="sm"
+                  className="w-full"
+                  disabled={iniciandoId === t.id}
+                  onClick={(e) => iniciar(e, t.id, t.setor_id)}
+                >
+                  <Play className="h-4 w-4" /> Iniciar
+                </Button>
+              )}
             </Link>
           ))}
         </div>

@@ -28,6 +28,12 @@ function Perfil() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [reportDate, setReportDate] = useState(
+    () => new Date().toISOString().slice(0, 10),
+  );
+  const [reportMonth, setReportMonth] = useState(
+    () => new Date().toISOString().slice(0, 7),
+  );
 
   useEffect(() => {
     if (profile) {
@@ -72,7 +78,12 @@ function Perfil() {
     await refresh();
   };
 
-  const exportReport = async () => {
+  const generateReport = async (
+    matcher: (closedAt: Date) => boolean,
+    fileName: string,
+    sheetName: string,
+    emptyMsg: string,
+  ) => {
     if (!user) return;
     setExporting(true);
     try {
@@ -81,16 +92,15 @@ function Perfil() {
         fetchProfiles(),
         fetchLocalidades(),
       ]);
-      const today = new Date().toDateString();
       const mine = all.filter(
         (t) =>
           t.status === "finalizado" &&
           t.closed_at &&
-          new Date(t.closed_at).toDateString() === today &&
+          matcher(new Date(t.closed_at)) &&
           (t.tecnico_id === user.id || t.solicitante_id === user.id),
       );
       if (mine.length === 0) {
-        toast.info("Nenhum chamado finalizado por você hoje.");
+        toast.info(emptyMsg);
         setExporting(false);
         return;
       }
@@ -107,8 +117,10 @@ function Perfil() {
       const statusLabel = (s: string) =>
         ({
           aguardando: "Aguardando",
+          aguardando_agendamento: "Aguardando Agendamento",
           em_atendimento: "Em Atendimento",
           em_manutencao: "Em Manutenção",
+          pronto_entrega: "Pronto para Entrega",
           finalizado: "Finalizado",
           agendado: "Agendado",
         })[s] ?? s;
@@ -236,15 +248,32 @@ function Perfil() {
       ws["!rows"] = rowHeights;
 
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Relatório Diário");
-      XLSX.writeFile(
-        wb,
-        `relatorio-diario-${new Date().toISOString().slice(0, 10)}.xlsx`,
-      );
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, fileName);
       toast.success(`Relatório gerado (${mine.length} chamado(s)).`);
     } finally {
       setExporting(false);
     }
+  };
+
+  const exportDaily = () => {
+    const target = new Date(reportDate + "T00:00:00").toDateString();
+    generateReport(
+      (d) => d.toDateString() === target,
+      `relatorio-diario-${reportDate}.xlsx`,
+      "Relatório Diário",
+      "Nenhum chamado finalizado por você nesta data.",
+    );
+  };
+
+  const exportMonthly = () => {
+    const [y, mo] = reportMonth.split("-").map(Number);
+    generateReport(
+      (d) => d.getFullYear() === y && d.getMonth() === mo - 1,
+      `relatorio-mensal-${reportMonth}.xlsx`,
+      "Relatório Mensal",
+      "Nenhum chamado finalizado por você neste mês.",
+    );
   };
 
   const roleLabel = roles.includes("admin")
@@ -308,20 +337,50 @@ function Perfil() {
       </div>
 
       <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <h2 className="font-semibold text-foreground">Relatório Diário</h2>
+        <h2 className="font-semibold text-foreground">Relatórios (Excel)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Exporta uma planilha Excel (.xlsx) formatada com os chamados
-          finalizados por você hoje: título, setor/localidade, técnico, datas e
+          finalizados por você: título, setor/localidade, técnico, datas e
           horas de abertura e finalização, status e observações.
         </p>
-        <Button className="mt-4" onClick={exportReport} disabled={exporting}>
-          {exporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <FileDown className="h-4 w-4" />
-          )}
-          Exportar Relatório Diário
-        </Button>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+            <Label htmlFor="report-date">Relatório Diário</Label>
+            <Input
+              id="report-date"
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+            />
+            <Button className="w-full" onClick={exportDaily} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              Exportar Dia
+            </Button>
+          </div>
+
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+            <Label htmlFor="report-month">Relatório Mensal</Label>
+            <Input
+              id="report-month"
+              type="month"
+              value={reportMonth}
+              onChange={(e) => setReportMonth(e.target.value)}
+            />
+            <Button className="w-full" onClick={exportMonthly} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              Exportar Mês
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

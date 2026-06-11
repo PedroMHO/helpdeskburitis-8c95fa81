@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchTicket, fetchProfiles, fetchLocalidades } from "@/lib/data";
+import { fetchTicket, fetchProfiles, fetchLocalidades, setTechnicianStatus } from "@/lib/data";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/tickets/$id")({
 
 function TicketDetail() {
   const { id } = Route.useParams();
-  const { user, isAdmin, isTecnico } = useAuth();
+  const { user, isAdmin, isTecnico, isAtendente } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -92,6 +92,7 @@ function TicketDetail() {
     return <p className="text-muted-foreground">Chamado não encontrado.</p>;
 
   const canManage = isAdmin || isTecnico;
+  const canSchedule = canManage || isAtendente;
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
   const name = (uid: string | null) =>
@@ -127,12 +128,23 @@ function TicketDetail() {
       .from("tickets")
       .update({ status: "em_atendimento", tecnico_id: user.id })
       .eq("id", ticket.id);
-    if (!error) await recordHistory("aguardando", "em_atendimento");
+    if (!error) {
+      await recordHistory(ticket.status, "em_atendimento");
+      await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
-    toast.success("Chamado assumido!");
+    toast.success("Chamado iniciado!");
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
+  const syncTechStatus = async (novo: TicketStatus) => {
+    if (!user || !(isAdmin || isTecnico)) return;
+    if (novo === "em_atendimento") await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
+    else if (novo === "em_manutencao") await setTechnicianStatus(user.id, "em_manutencao", null);
+    else await setTechnicianStatus(user.id, "disponivel", null);
   };
 
   const mudarStatus = async (novo: TicketStatus) => {
@@ -148,12 +160,16 @@ function TicketDetail() {
       .from("tickets")
       .update(patch)
       .eq("id", ticket.id);
-    if (!error) await recordHistory(ticket.status, novo);
+    if (!error) {
+      await recordHistory(ticket.status, novo);
+      await syncTechStatus(novo);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
   const agendar = async () => {
@@ -162,8 +178,13 @@ function TicketDetail() {
     setBusy(true);
     const { error } = await supabase
       .from("tickets")
-      .update({ scheduled_at: new Date(scheduleAt).toISOString() })
+      .update({
+        scheduled_at: new Date(scheduleAt).toISOString(),
+        status: "agendado",
+      })
       .eq("id", ticket.id);
+    if (!error && ticket.status !== "agendado")
+      await recordHistory(ticket.status, "agendado");
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado agendado!");
@@ -200,13 +221,17 @@ function TicketDetail() {
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
       .eq("id", ticket.id);
-    if (!error) await recordHistory(ticket.status, "finalizado", note.trim());
+    if (!error) {
+      await recordHistory(ticket.status, "finalizado", note.trim());
+      await setTechnicianStatus(user.id, "disponivel", null);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado finalizado!");
     setFinalizing(false);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
   const excluir = async () => {
@@ -296,7 +321,7 @@ function TicketDetail() {
           </div>
         )}
 
-        {(canManage || (isOwner && ticket.status !== "finalizado") || canDelete) && (
+        {(canSchedule || (isOwner && ticket.status !== "finalizado") || canDelete) && (
           <div className="mt-6 space-y-4 border-t pt-4">
             {canManage && ticket.status !== "finalizado" && (
               <div className="flex flex-wrap items-end gap-3">
@@ -307,12 +332,15 @@ function TicketDetail() {
                     onValueChange={(v) => mudarStatus(v as TicketStatus)}
                     disabled={busy}
                   >
-                    <SelectTrigger className="w-52">
+                    <SelectTrigger className="w-56">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="aguardando">
                         {STATUS_LABEL.aguardando}
+                      </SelectItem>
+                      <SelectItem value="aguardando_agendamento">
+                        {STATUS_LABEL.aguardando_agendamento}
                       </SelectItem>
                       <SelectItem value="agendado">
                         {STATUS_LABEL.agendado}
@@ -323,6 +351,9 @@ function TicketDetail() {
                       <SelectItem value="em_manutencao">
                         {STATUS_LABEL.em_manutencao}
                       </SelectItem>
+                      <SelectItem value="pronto_entrega">
+                        {STATUS_LABEL.pronto_entrega}
+                      </SelectItem>
                       <SelectItem value="finalizado">
                         {STATUS_LABEL.finalizado}
                       </SelectItem>
@@ -332,13 +363,16 @@ function TicketDetail() {
               </div>
             )}
             <div className="flex flex-wrap gap-2">
-              {canManage && ticket.status === "aguardando" && (
-                <Button onClick={assumir} disabled={busy}>
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  <Wrench className="h-4 w-4" /> Assumir Chamado
-                </Button>
-              )}
-              {canManage && ticket.status !== "finalizado" && (
+              {canManage &&
+                (ticket.status === "aguardando" ||
+                  ticket.status === "aguardando_agendamento" ||
+                  ticket.status === "agendado") && (
+                  <Button onClick={assumir} disabled={busy}>
+                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <Wrench className="h-4 w-4" /> Iniciar
+                  </Button>
+                )}
+              {canSchedule && ticket.status !== "finalizado" && (
                 <Button variant="outline" onClick={() => setScheduling(true)}>
                   <Calendar className="h-4 w-4" /> Agendar
                 </Button>

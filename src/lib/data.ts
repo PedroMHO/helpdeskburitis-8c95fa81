@@ -8,6 +8,8 @@ export interface TicketRow {
   status: TicketStatus;
   priority: TicketPriority;
   solicitante_id: string;
+  solicitante_nome: string | null;
+  solicitante_ref: string | null;
   tecnico_id: string | null;
   created_by: string;
   cidade_id: string | null;
@@ -99,4 +101,68 @@ export async function fetchLocalidades() {
     bairros: (bairros.data ?? []) as Bairro[],
     setores: (setores.data ?? []) as Setor[],
   };
+}
+
+export interface Solicitante {
+  id: string;
+  nome: string;
+  setor_id: string | null;
+}
+
+export async function fetchSolicitantes(): Promise<Solicitante[]> {
+  const { data, error } = await supabase
+    .from("solicitantes")
+    .select("id, nome, setor_id")
+    .order("nome");
+  if (error) throw error;
+  return (data ?? []) as Solicitante[];
+}
+
+export interface TechnicianStatusRow {
+  user_id: string;
+  status: string;
+  setor_id: string | null;
+  updated_at: string;
+}
+
+export async function fetchTechnicianStatuses(): Promise<TechnicianStatusRow[]> {
+  const { data, error } = await supabase
+    .from("technician_status")
+    .select("user_id, status, setor_id, updated_at");
+  if (error) throw error;
+  return (data ?? []) as TechnicianStatusRow[];
+}
+
+export interface NotificationRow {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  ticket_id: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export async function fetchNotifications(): Promise<NotificationRow[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("id, type, title, body, ticket_id, read, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []) as NotificationRow[];
+}
+
+/** Upsert the current technician's live status. */
+export async function setTechnicianStatus(
+  userId: string,
+  status: string,
+  setorId: string | null,
+) {
+  await supabase
+    .from("technician_status")
+    .upsert(
+      { user_id: userId, status, setor_id: setorId, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    );
 }

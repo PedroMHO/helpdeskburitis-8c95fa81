@@ -25,35 +25,43 @@ import {
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   component: AuthenticatedLayout,
 });
 
+interface NavRoleFlags {
+  isAdmin: boolean;
+  isTecnico: boolean;
+  isAtendente: boolean;
+  isSolicitante: boolean;
+}
+
 interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  show: (a: { isAdmin: boolean; isTecnico: boolean; isAtendente: boolean }) => boolean;
+  show: (a: NavRoleFlags) => boolean;
 }
 
 const NAV: NavItem[] = [
-  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: () => true },
-  { to: "/tickets", label: "Chamados", icon: Ticket, show: () => true },
+  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: ({ isSolicitante }) => !isSolicitante },
+  { to: "/tickets", label: "Chamados", icon: Ticket, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/agendados",
     label: "Chamados Agendados",
     icon: CalendarClock,
-    show: () => true,
+    show: ({ isSolicitante }) => !isSolicitante,
   },
   {
     to: "/manutencao",
     label: "Em Manutenção",
     icon: Wrench,
-    show: () => true,
+    show: ({ isSolicitante }) => !isSolicitante,
   },
-  { to: "/historico", label: "Histórico", icon: History, show: () => true },
+  { to: "/historico", label: "Histórico", icon: History, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/tickets/novo",
     label: "Abrir Chamado",
@@ -82,7 +90,7 @@ const NAV: NavItem[] = [
 ];
 
 function AuthenticatedLayout() {
-  const { user, loading, profile, isAdmin, isTecnico, isAtendente, signOut } =
+  const { user, loading, profile, isAdmin, isTecnico, isAtendente, isSolicitante, signOut } =
     useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -110,9 +118,13 @@ function AuthenticatedLayout() {
       ? "Técnico"
       : isAtendente
         ? "Atendente"
-        : "Usuário Comum";
+        : isSolicitante
+          ? "Solicitante"
+          : "Usuário Comum";
 
-  const items = NAV.filter((i) => i.show({ isAdmin, isTecnico, isAtendente }));
+  const items = NAV.filter((i) =>
+    i.show({ isAdmin, isTecnico, isAtendente, isSolicitante }),
+  );
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -187,11 +199,19 @@ function AuthenticatedLayout() {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b bg-card px-4 py-3 lg:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+        <header className="flex items-center gap-3 border-b bg-card px-4 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setOpen(true)}
+          >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-semibold">Chamados Buritis</span>
+          <span className="font-semibold lg:hidden">Chamados Buritis</span>
+          <div className="ml-auto">
+            <NotificationsBell />
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           <Outlet />

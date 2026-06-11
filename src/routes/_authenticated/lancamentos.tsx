@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Loader2, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchProfiles, fetchTecnicos, fetchLocalidades } from "@/lib/data";
+import { fetchProfiles, fetchTecnicos, fetchLocalidades, fetchSolicitantes } from "@/lib/data";
 import { PRIORITY_LABEL, type TicketPriority } from "@/lib/helpdesk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ function Lancamentos() {
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: tecnicos = [] } = useQuery({ queryKey: ["tecnicos"], queryFn: fetchTecnicos });
   const { data: loc } = useQuery({ queryKey: ["localidades"], queryFn: fetchLocalidades });
+  const { data: solicitantesList = [] } = useQuery({ queryKey: ["solicitantes"], queryFn: fetchSolicitantes });
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -43,6 +44,7 @@ function Lancamentos() {
   const [cidadeId, setCidadeId] = useState("");
   const [bairroId, setBairroId] = useState("");
   const [setorId, setSetorId] = useState("");
+  const [solicitanteRef, setSolicitanteRef] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -58,6 +60,10 @@ function Lancamentos() {
     () => (loc?.setores ?? []).filter((s) => s.bairro_id === bairroId),
     [loc, bairroId],
   );
+  const solsDoSetor = useMemo(
+    () => solicitantesList.filter((s) => s.setor_id === setorId),
+    [solicitantesList, setorId],
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +78,10 @@ function Lancamentos() {
       descricao: descricao.trim(),
       priority,
       solicitante_id: solicitante,
+      solicitante_ref: solicitanteRef || null,
+      solicitante_nome: solicitanteRef
+        ? solicitantesList.find((s) => s.id === solicitanteRef)?.nome ?? null
+        : null,
       created_by: user.id,
       tecnico_id: tecnico || null,
       status: agendado ? "agendado" : "aguardando",
@@ -85,6 +95,7 @@ function Lancamentos() {
     toast.success("Chamado lançado com sucesso!");
     setTitulo("");
     setDescricao("");
+    setSolicitanteRef("");
     setAgendado(false);
     setScheduledAt("");
     qc.invalidateQueries({ queryKey: ["tickets"] });
@@ -223,6 +234,34 @@ function Lancamentos() {
             </Select>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <Label>Solicitante do setor (opcional)</Label>
+          <Select
+            value={solicitanteRef}
+            onValueChange={setSolicitanteRef}
+            disabled={!setorId || solsDoSetor.length === 0}
+          >
+            <SelectTrigger>
+              <SelectValue
+                placeholder={
+                  !setorId
+                    ? "Selecione um setor primeiro"
+                    : solsDoSetor.length === 0
+                      ? "Nenhum solicitante neste setor"
+                      : "Quem pediu o chamado?"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {solsDoSetor.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+
 
         <div className="flex justify-end">
           <Button type="submit" disabled={busy}>

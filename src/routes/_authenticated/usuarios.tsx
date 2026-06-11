@@ -42,10 +42,11 @@ interface UserRow {
 }
 
 const ROLE_RANK: Record<AppRole, number> = {
-  admin: 4,
-  tecnico: 3,
-  atendente: 2,
-  usuario: 1,
+  admin: 5,
+  tecnico: 4,
+  atendente: 3,
+  usuario: 2,
+  solicitante: 1,
 };
 
 async function fetchUsers(): Promise<UserRow[]> {
@@ -96,6 +97,11 @@ const ROLE_META: Record<
     label: "Usuário Comum",
     icon: UserIcon,
     perms: "Abre os próprios chamados e acompanha o atendimento.",
+  },
+  solicitante: {
+    label: "Solicitante",
+    icon: UserIcon,
+    perms: "Abre chamados simplificados, limitado a 1 a cada 30 minutos.",
   },
 };
 
@@ -222,6 +228,7 @@ function Usuarios() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="solicitante">Solicitante</SelectItem>
                 <SelectItem value="usuario">Usuário Comum</SelectItem>
                 <SelectItem value="atendente">Atendente</SelectItem>
                 <SelectItem value="tecnico">Técnico</SelectItem>
@@ -279,6 +286,7 @@ function Usuarios() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="solicitante">Solicitante</SelectItem>
                         <SelectItem value="usuario">Usuário Comum</SelectItem>
                         <SelectItem value="atendente">Atendente</SelectItem>
                         <SelectItem value="tecnico">Técnico</SelectItem>

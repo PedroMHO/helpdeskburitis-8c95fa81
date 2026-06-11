@@ -61,6 +61,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          read: boolean
+          ticket_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          ticket_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          ticket_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -116,6 +157,67 @@ export type Database = {
             columns: ["bairro_id"]
             isOneToOne: false
             referencedRelation: "bairros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitantes: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          setor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          setor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          setor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitantes_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_status: {
+        Row: {
+          setor_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          setor_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          setor_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_status_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
             referencedColumns: ["id"]
           },
         ]
@@ -181,6 +283,8 @@ export type Database = {
           scheduled_at: string | null
           setor_id: string | null
           solicitante_id: string
+          solicitante_nome: string | null
+          solicitante_ref: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           tecnico_id: string | null
           titulo: string
@@ -201,6 +305,8 @@ export type Database = {
           scheduled_at?: string | null
           setor_id?: string | null
           solicitante_id: string
+          solicitante_nome?: string | null
+          solicitante_ref?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           tecnico_id?: string | null
           titulo: string
@@ -221,6 +327,8 @@ export type Database = {
           scheduled_at?: string | null
           setor_id?: string | null
           solicitante_id?: string
+          solicitante_nome?: string | null
+          solicitante_ref?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           tecnico_id?: string | null
           titulo?: string
@@ -260,6 +368,13 @@ export type Database = {
             columns: ["solicitante_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_solicitante_ref_fkey"
+            columns: ["solicitante_ref"]
+            isOneToOne: false
+            referencedRelation: "solicitantes"
             referencedColumns: ["id"]
           },
           {
@@ -314,7 +429,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "tecnico" | "usuario" | "atendente"
+      app_role: "admin" | "tecnico" | "usuario" | "atendente" | "solicitante"
       ticket_priority: "baixa" | "media" | "alta"
       ticket_status:
         | "aguardando"
@@ -322,6 +437,8 @@ export type Database = {
         | "finalizado"
         | "agendado"
         | "em_manutencao"
+        | "aguardando_agendamento"
+        | "pronto_entrega"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -449,7 +566,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "tecnico", "usuario", "atendente"],
+      app_role: ["admin", "tecnico", "usuario", "atendente", "solicitante"],
       ticket_priority: ["baixa", "media", "alta"],
       ticket_status: [
         "aguardando",
@@ -457,6 +574,8 @@ export const Constants = {
         "finalizado",
         "agendado",
         "em_manutencao",
+        "aguardando_agendamento",
+        "pronto_entrega",
       ],
     },
   },

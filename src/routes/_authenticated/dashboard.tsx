@@ -4,6 +4,8 @@ import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
 import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
+import { TechnicianStatusPanel } from "@/components/TechnicianStatusPanel";
+import { DashboardCharts } from "@/components/DashboardCharts";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -87,6 +89,12 @@ function Dashboard() {
         <StatCard label="Finalizados" value={finalizados} icon={CheckCircle2} accent="bg-status-finalizado/15 text-status-finalizado" />
         <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
       </div>
+
+      <TechnicianStatusPanel />
+
+      {isAdmin && <DashboardCharts tickets={tickets} />}
+
+
 
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-4">
