@@ -33,7 +33,7 @@ export function DashboardCharts({ tickets }: { tickets: TicketRow[] }) {
     { name: "Finalizados", value: finalizados },
     { name: "Em aberto", value: abertos },
   ];
-  const PIE_COLORS = ["hsl(var(--status-finalizado))", "hsl(var(--status-aguardando))"];
+  const PIE_COLORS = ["var(--status-finalizado)", "var(--status-aguardando)"];
 
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const daily = useMemo(() => {
@@ -89,7 +89,7 @@ export function DashboardCharts({ tickets }: { tickets: TicketRow[] }) {
             <XAxis dataKey="dia" tick={{ fontSize: 11 }} interval={2} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
             <Tooltip />
-            <Bar dataKey="total" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="total" fill="var(--primary)" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
