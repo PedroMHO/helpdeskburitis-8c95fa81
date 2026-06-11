@@ -216,13 +216,17 @@ function TicketDetail() {
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
       .eq("id", ticket.id);
-    if (!error) await recordHistory(ticket.status, "finalizado", note.trim());
+    if (!error) {
+      await recordHistory(ticket.status, "finalizado", note.trim());
+      await setTechnicianStatus(user.id, "disponivel", null);
+    }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado finalizado!");
     setFinalizing(false);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
   const excluir = async () => {
