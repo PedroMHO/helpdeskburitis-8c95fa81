@@ -316,7 +316,7 @@ function TicketDetail() {
           </div>
         )}
 
-        {(canManage || (isOwner && ticket.status !== "finalizado") || canDelete) && (
+        {(canSchedule || (isOwner && ticket.status !== "finalizado") || canDelete) && (
           <div className="mt-6 space-y-4 border-t pt-4">
             {canManage && ticket.status !== "finalizado" && (
               <div className="flex flex-wrap items-end gap-3">
@@ -327,12 +327,15 @@ function TicketDetail() {
                     onValueChange={(v) => mudarStatus(v as TicketStatus)}
                     disabled={busy}
                   >
-                    <SelectTrigger className="w-52">
+                    <SelectTrigger className="w-56">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="aguardando">
                         {STATUS_LABEL.aguardando}
+                      </SelectItem>
+                      <SelectItem value="aguardando_agendamento">
+                        {STATUS_LABEL.aguardando_agendamento}
                       </SelectItem>
                       <SelectItem value="agendado">
                         {STATUS_LABEL.agendado}
@@ -343,6 +346,9 @@ function TicketDetail() {
                       <SelectItem value="em_manutencao">
                         {STATUS_LABEL.em_manutencao}
                       </SelectItem>
+                      <SelectItem value="pronto_entrega">
+                        {STATUS_LABEL.pronto_entrega}
+                      </SelectItem>
                       <SelectItem value="finalizado">
                         {STATUS_LABEL.finalizado}
                       </SelectItem>
@@ -352,13 +358,16 @@ function TicketDetail() {
               </div>
             )}
             <div className="flex flex-wrap gap-2">
-              {canManage && ticket.status === "aguardando" && (
-                <Button onClick={assumir} disabled={busy}>
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  <Wrench className="h-4 w-4" /> Assumir Chamado
-                </Button>
-              )}
-              {canManage && ticket.status !== "finalizado" && (
+              {canManage &&
+                (ticket.status === "aguardando" ||
+                  ticket.status === "aguardando_agendamento" ||
+                  ticket.status === "agendado") && (
+                  <Button onClick={assumir} disabled={busy}>
+                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <Wrench className="h-4 w-4" /> Iniciar
+                  </Button>
+                )}
+              {canSchedule && ticket.status !== "finalizado" && (
                 <Button variant="outline" onClick={() => setScheduling(true)}>
                   <Calendar className="h-4 w-4" /> Agendar
                 </Button>
