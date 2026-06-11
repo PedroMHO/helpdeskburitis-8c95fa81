@@ -235,6 +235,34 @@ function Lancamentos() {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <Label>Solicitante do setor (opcional)</Label>
+          <Select
+            value={solicitanteRef}
+            onValueChange={setSolicitanteRef}
+            disabled={!setorId || solsDoSetor.length === 0}
+          >
+            <SelectTrigger>
+              <SelectValue
+                placeholder={
+                  !setorId
+                    ? "Selecione um setor primeiro"
+                    : solsDoSetor.length === 0
+                      ? "Nenhum solicitante neste setor"
+                      : "Quem pediu o chamado?"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {solsDoSetor.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+
+
         <div className="flex justify-end">
           <Button type="submit" disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
