@@ -335,20 +335,50 @@ function Perfil() {
       </div>
 
       <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <h2 className="font-semibold text-foreground">Relatório Diário</h2>
+        <h2 className="font-semibold text-foreground">Relatórios (Excel)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Exporta uma planilha Excel (.xlsx) formatada com os chamados
-          finalizados por você hoje: título, setor/localidade, técnico, datas e
+          finalizados por você: título, setor/localidade, técnico, datas e
           horas de abertura e finalização, status e observações.
         </p>
-        <Button className="mt-4" onClick={exportReport} disabled={exporting}>
-          {exporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <FileDown className="h-4 w-4" />
-          )}
-          Exportar Relatório Diário
-        </Button>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+            <Label htmlFor="report-date">Relatório Diário</Label>
+            <Input
+              id="report-date"
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+            />
+            <Button className="w-full" onClick={exportDaily} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              Exportar Dia
+            </Button>
+          </div>
+
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+            <Label htmlFor="report-month">Relatório Mensal</Label>
+            <Input
+              id="report-month"
+              type="month"
+              value={reportMonth}
+              onChange={(e) => setReportMonth(e.target.value)}
+            />
+            <Button className="w-full" onClick={exportMonthly} disabled={exporting}>
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              Exportar Mês
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
