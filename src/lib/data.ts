@@ -102,3 +102,53 @@ export async function fetchLocalidades() {
     setores: (setores.data ?? []) as Setor[],
   };
 }
+
+export interface Solicitante {
+  id: string;
+  nome: string;
+  setor_id: string | null;
+}
+
+export async function fetchSolicitantes(): Promise<Solicitante[]> {
+  const { data, error } = await supabase
+    .from("solicitantes")
+    .select("id, nome, setor_id")
+    .order("nome");
+  if (error) throw error;
+  return (data ?? []) as Solicitante[];
+}
+
+export interface TechnicianStatusRow {
+  user_id: string;
+  status: string;
+  setor_id: string | null;
+  updated_at: string;
+}
+
+export async function fetchTechnicianStatuses(): Promise<TechnicianStatusRow[]> {
+  const { data, error } = await supabase
+    .from("technician_status")
+    .select("user_id, status, setor_id, updated_at");
+  if (error) throw error;
+  return (data ?? []) as TechnicianStatusRow[];
+}
+
+export interface NotificationRow {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  ticket_id: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export async function fetchNotifications(): Promise<NotificationRow[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("id, type, title, body, ticket_id, read, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []) as NotificationRow[];
+}
