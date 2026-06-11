@@ -25,6 +25,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
