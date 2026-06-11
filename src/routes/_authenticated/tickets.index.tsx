@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 });
 
 function TicketsList() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isTecnico, user } = useAuth();
+  const qc = useQueryClient();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
@@ -37,6 +38,38 @@ function TicketsList() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [priority, setPriority] = useState<string>("all");
+  const [iniciandoId, setIniciandoId] = useState<string | null>(null);
+
+  const canManage = isAdmin || isTecnico;
+
+  const iniciar = async (
+    e: React.MouseEvent,
+    ticketId: string,
+    setorId: string | null,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    setIniciandoId(ticketId);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: "em_atendimento", tecnico_id: user.id })
+      .eq("id", ticketId);
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: "aguardando",
+        to_status: "em_atendimento",
+        changed_by: user.id,
+      });
+      await setTechnicianStatus(user.id, "atendendo", setorId);
+    }
+    setIniciandoId(null);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado iniciado!");
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
 
   const filtered = useMemo(
     () =>
