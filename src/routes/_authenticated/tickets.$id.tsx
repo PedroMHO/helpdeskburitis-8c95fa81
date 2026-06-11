@@ -178,8 +178,13 @@ function TicketDetail() {
     setBusy(true);
     const { error } = await supabase
       .from("tickets")
-      .update({ scheduled_at: new Date(scheduleAt).toISOString() })
+      .update({
+        scheduled_at: new Date(scheduleAt).toISOString(),
+        status: "agendado",
+      })
       .eq("id", ticket.id);
+    if (!error && ticket.status !== "agendado")
+      await recordHistory(ticket.status, "agendado");
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado agendado!");
