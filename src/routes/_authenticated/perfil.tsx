@@ -117,8 +117,10 @@ function Perfil() {
       const statusLabel = (s: string) =>
         ({
           aguardando: "Aguardando",
+          aguardando_agendamento: "Aguardando Agendamento",
           em_atendimento: "Em Atendimento",
           em_manutencao: "Em Manutenção",
+          pronto_entrega: "Pronto para Entrega",
           finalizado: "Finalizado",
           agendado: "Agendado",
         })[s] ?? s;
