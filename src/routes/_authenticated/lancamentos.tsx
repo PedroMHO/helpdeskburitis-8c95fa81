@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Loader2, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchProfiles, fetchTecnicos, fetchLocalidades } from "@/lib/data";
+import { fetchProfiles, fetchTecnicos, fetchLocalidades, fetchSolicitantes } from "@/lib/data";
 import { PRIORITY_LABEL, type TicketPriority } from "@/lib/helpdesk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
