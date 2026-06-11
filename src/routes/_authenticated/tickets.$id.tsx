@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchTicket, fetchProfiles, fetchLocalidades } from "@/lib/data";
+import { fetchTicket, fetchProfiles, fetchLocalidades, setTechnicianStatus } from "@/lib/data";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/tickets/$id")({
 
 function TicketDetail() {
   const { id } = Route.useParams();
-  const { user, isAdmin, isTecnico } = useAuth();
+  const { user, isAdmin, isTecnico, isAtendente } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
