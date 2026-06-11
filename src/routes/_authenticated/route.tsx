@@ -31,29 +31,36 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 });
 
+interface NavRoleFlags {
+  isAdmin: boolean;
+  isTecnico: boolean;
+  isAtendente: boolean;
+  isSolicitante: boolean;
+}
+
 interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  show: (a: { isAdmin: boolean; isTecnico: boolean; isAtendente: boolean }) => boolean;
+  show: (a: NavRoleFlags) => boolean;
 }
 
 const NAV: NavItem[] = [
-  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: () => true },
-  { to: "/tickets", label: "Chamados", icon: Ticket, show: () => true },
+  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: ({ isSolicitante }) => !isSolicitante },
+  { to: "/tickets", label: "Chamados", icon: Ticket, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/agendados",
     label: "Chamados Agendados",
     icon: CalendarClock,
-    show: () => true,
+    show: ({ isSolicitante }) => !isSolicitante,
   },
   {
     to: "/manutencao",
     label: "Em Manutenção",
     icon: Wrench,
-    show: () => true,
+    show: ({ isSolicitante }) => !isSolicitante,
   },
-  { to: "/historico", label: "Histórico", icon: History, show: () => true },
+  { to: "/historico", label: "Histórico", icon: History, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/tickets/novo",
     label: "Abrir Chamado",
