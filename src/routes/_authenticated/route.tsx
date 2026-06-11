@@ -198,11 +198,19 @@ function AuthenticatedLayout() {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b bg-card px-4 py-3 lg:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+        <header className="flex items-center gap-3 border-b bg-card px-4 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setOpen(true)}
+          >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-semibold">Chamados Buritis</span>
+          <span className="font-semibold lg:hidden">Chamados Buritis</span>
+          <div className="ml-auto">
+            <NotificationsBell />
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
