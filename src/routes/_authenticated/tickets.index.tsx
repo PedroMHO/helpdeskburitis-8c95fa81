@@ -174,6 +174,16 @@ function TicketsList() {
                   {new Date(t.created_at).toLocaleDateString("pt-BR")}
                 </span>
               </div>
+              {canManage && t.status === "aguardando" && (
+                <Button
+                  size="sm"
+                  className="w-full"
+                  disabled={iniciandoId === t.id}
+                  onClick={(e) => iniciar(e, t.id, t.setor_id)}
+                >
+                  <Play className="h-4 w-4" /> Iniciar
+                </Button>
+              )}
             </Link>
           ))}
         </div>
