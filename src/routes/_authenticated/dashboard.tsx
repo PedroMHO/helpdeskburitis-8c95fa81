@@ -90,6 +90,12 @@ function Dashboard() {
         <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
       </div>
 
+      <TechnicianStatusPanel />
+
+      {isAdmin && <DashboardCharts tickets={tickets} />}
+
+
+
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <h2 className="font-semibold text-foreground">Chamados recentes</h2>
