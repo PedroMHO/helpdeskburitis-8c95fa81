@@ -44,6 +44,7 @@ function Lancamentos() {
   const [cidadeId, setCidadeId] = useState("");
   const [bairroId, setBairroId] = useState("");
   const [setorId, setSetorId] = useState("");
+  const [solicitanteRef, setSolicitanteRef] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -58,6 +59,10 @@ function Lancamentos() {
   const setores = useMemo(
     () => (loc?.setores ?? []).filter((s) => s.bairro_id === bairroId),
     [loc, bairroId],
+  );
+  const solsDoSetor = useMemo(
+    () => solicitantesList.filter((s) => s.setor_id === setorId),
+    [solicitantesList, setorId],
   );
 
   const submit = async (e: React.FormEvent) => {
