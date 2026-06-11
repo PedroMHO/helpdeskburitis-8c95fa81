@@ -4,6 +4,8 @@ import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
 import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
+import { TechnicianStatusPanel } from "@/components/TechnicianStatusPanel";
+import { DashboardCharts } from "@/components/DashboardCharts";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
