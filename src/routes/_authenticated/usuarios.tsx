@@ -228,6 +228,7 @@ function Usuarios() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="solicitante">Solicitante</SelectItem>
                 <SelectItem value="usuario">Usuário Comum</SelectItem>
                 <SelectItem value="atendente">Atendente</SelectItem>
                 <SelectItem value="tecnico">Técnico</SelectItem>
@@ -285,6 +286,7 @@ function Usuarios() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="solicitante">Solicitante</SelectItem>
                         <SelectItem value="usuario">Usuário Comum</SelectItem>
                         <SelectItem value="atendente">Atendente</SelectItem>
                         <SelectItem value="tecnico">Técnico</SelectItem>
