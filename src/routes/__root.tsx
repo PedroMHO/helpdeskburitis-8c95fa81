@@ -97,8 +97,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
       { property: "og:description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
       { name: "twitter:description", content: "Chamados Informática Buritis is a corporate helpdesk app for managing IT support requests." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7607b4e4-4757-4496-afb8-dbf3ba13732d/id-preview-65225baf--63b600f8-cc04-4e1b-915f-c730fa15d328.lovable.app-1780434165872.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7607b4e4-4757-4496-afb8-dbf3ba13732d/id-preview-65225baf--63b600f8-cc04-4e1b-915f-c730fa15d328.lovable.app-1780434165872.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/IRQHjBI3hWgde6xuuI3yCx6dVSq1/social-images/social-1781214301330-Capa_APP.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/IRQHjBI3hWgde6xuuI3yCx6dVSq1/social-images/social-1781214301330-Capa_APP.webp" },
     ],
     links: [
       {
