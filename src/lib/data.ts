@@ -8,6 +8,8 @@ export interface TicketRow {
   status: TicketStatus;
   priority: TicketPriority;
   solicitante_id: string;
+  solicitante_nome: string | null;
+  solicitante_ref: string | null;
   tecnico_id: string | null;
   created_by: string;
   cidade_id: string | null;
