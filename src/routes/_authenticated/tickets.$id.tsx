@@ -70,6 +70,10 @@ function TicketDetail() {
     queryKey: ["localidades"],
     queryFn: fetchLocalidades,
   });
+  const { data: tecnicos = [] } = useQuery({
+    queryKey: ["tecnicos"],
+    queryFn: fetchTecnicos,
+  });
 
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
