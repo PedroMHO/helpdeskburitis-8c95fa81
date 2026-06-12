@@ -39,6 +39,7 @@ interface UserRow {
   full_name: string;
   email: string;
   role: AppRole;
+  setor_id: string | null;
 }
 
 const ROLE_RANK: Record<AppRole, number> = {
@@ -52,7 +53,7 @@ const ROLE_RANK: Record<AppRole, number> = {
 async function fetchUsers(): Promise<UserRow[]> {
   const [{ data: profiles, error: pErr }, { data: roleRows, error: rErr }] =
     await Promise.all([
-      supabase.from("profiles").select("id, full_name, email").order("full_name"),
+      supabase.from("profiles").select("id, full_name, email, setor_id").order("full_name"),
       supabase.from("user_roles").select("user_id, role"),
     ]);
   if (pErr) throw pErr;
@@ -64,11 +65,12 @@ async function fetchUsers(): Promise<UserRow[]> {
     if (!cur || ROLE_RANK[r.role] > ROLE_RANK[cur]) roleByUser.set(r.user_id, r.role);
   }
 
-  return ((profiles ?? []) as { id: string; full_name: string; email: string }[]).map(
+  return ((profiles ?? []) as { id: string; full_name: string; email: string; setor_id: string | null }[]).map(
     (p) => ({
       id: p.id,
       full_name: p.full_name,
       email: p.email,
+      setor_id: p.setor_id ?? null,
       role: roleByUser.get(p.id) ?? "usuario",
     }),
   );
