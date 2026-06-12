@@ -68,10 +68,14 @@
   --color-status-aguardando: var(--status-aguardando);
   --color-status-atendimento: var(--status-atendimento);
   --color-status-finalizado: var(--status-finalizado);
+  --font-sans: var(--font-system);
 }
 
 :root {
-  --radius: 0.625rem;
+  /* iOS 26 — raios mais generosos (Liquid Glass) */
+  --radius: 1.1rem;
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
   --background: oklch(0.985 0.005 240);
   --foreground: oklch(0.21 0.03 250);
   --card: oklch(1 0 0);
