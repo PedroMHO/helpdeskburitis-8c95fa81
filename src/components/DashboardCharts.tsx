@@ -94,7 +94,9 @@ export function DashboardCharts({ tickets, resolveName, feedSlot, showCompletion
 
   return (
     <div className="space-y-4">
+      {showCompletionCharts && (
       <div className="grid gap-4 lg:grid-cols-2">
+
         <div className="glass-card rounded-2xl border p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">
             Taxa de Conclusão por Técnico (mês atual)
