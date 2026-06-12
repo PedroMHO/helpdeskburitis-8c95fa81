@@ -117,6 +117,7 @@ function NovoChamado() {
       solicitante_id: user.id,
       solicitante_nome: nomeEscrito.trim(),
       created_by: user.id,
+      setor_id: profile?.setor_id ?? null,
     });
     setBusy(false);
     if (error) {
