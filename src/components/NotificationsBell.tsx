@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Bell, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { fetchNotifications } from "@/lib/data";
+import {
+  ensureNotificationPermission,
+  showNativeNotification,
+} from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -15,6 +20,7 @@ import {
 export function NotificationsBell() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [openPop, setOpenPop] = useState(false);
 
   const { data: notifications = [] } = useQuery({
@@ -22,6 +28,11 @@ export function NotificationsBell() {
     queryFn: fetchNotifications,
     enabled: !!user,
   });
+
+  // Solicita permissão de notificações nativas ao abrir o app.
+  useEffect(() => {
+    if (user) void ensureNotificationPermission();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -36,8 +47,28 @@ export function NotificationsBell() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          const n = payload.new as { title: string; body: string | null };
-          toast(n.title, { description: n.body ?? undefined });
+          const n = payload.new as {
+            title: string;
+            body: string | null;
+            ticket_id: string | null;
+          };
+          // Toast interno — clique redireciona ao chamado.
+          toast(n.title, {
+            description: n.body ?? undefined,
+            action: n.ticket_id
+              ? {
+                  label: "Abrir",
+                  onClick: () =>
+                    navigate({ to: "/tickets/$id", params: { id: n.ticket_id! } }),
+                }
+              : undefined,
+          });
+          // Notificação nativa do navegador.
+          showNativeNotification({
+            title: n.title,
+            body: n.body ?? undefined,
+            ticketId: n.ticket_id,
+          });
           qc.invalidateQueries({ queryKey: ["notifications"] });
         },
       )
@@ -45,7 +76,7 @@ export function NotificationsBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, qc]);
+  }, [user, qc, navigate]);
 
   const unread = notifications.filter((n) => !n.read).length;
 
@@ -89,7 +120,16 @@ export function NotificationsBell() {
             notifications.map((n) => (
               <li
                 key={n.id}
-                className={cnRow(n.read)}
+                className={
+                  (n.read ? "px-4 py-3" : "px-4 py-3 bg-primary/5") +
+                  (n.ticket_id ? " cursor-pointer hover:bg-muted/60" : "")
+                }
+                onClick={() => {
+                  if (n.ticket_id) {
+                    setOpenPop(false);
+                    navigate({ to: "/tickets/$id", params: { id: n.ticket_id! } });
+                  }
+                }}
               >
                 <p className="text-sm font-medium text-foreground">{n.title}</p>
                 {n.body && (
@@ -105,8 +145,4 @@ export function NotificationsBell() {
       </PopoverContent>
     </Popover>
   );
-}
-
-function cnRow(read: boolean) {
-  return read ? "px-4 py-3" : "px-4 py-3 bg-primary/5";
 }
