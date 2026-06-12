@@ -71,7 +71,7 @@ export function TechnicianStatusPanel() {
           return (
             <li
               key={t.id}
-              className="flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2"
+              className="flex flex-wrap items-center gap-2 rounded-xl border border-white/40 bg-white/25 px-3 py-2 backdrop-blur-md dark:border-white/10 dark:bg-white/5"
             >
               <span className="text-base font-semibold text-foreground">
                 {t.full_name || "Técnico"} -
