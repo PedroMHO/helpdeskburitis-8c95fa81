@@ -142,8 +142,8 @@ function TicketDetail() {
 
   const syncTechStatus = async (novo: TicketStatus) => {
     if (!user || !(isAdmin || isTecnico)) return;
+    // Em Manutenção libera o técnico (equipamento foi para o laboratório).
     if (novo === "em_atendimento") await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
-    else if (novo === "em_manutencao") await setTechnicianStatus(user.id, "em_manutencao", null);
     else await setTechnicianStatus(user.id, "disponivel", null);
   };
 
