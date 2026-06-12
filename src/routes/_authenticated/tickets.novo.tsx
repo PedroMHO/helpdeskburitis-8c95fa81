@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/tickets/novo")({
 const RATE_LIMIT_MS = 30 * 60 * 1000;
 
 function NovoChamado() {
-  const { user, isSolicitante } = useAuth();
+  const { user, profile, isSolicitante } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: loc } = useQuery({
@@ -117,6 +117,7 @@ function NovoChamado() {
       solicitante_id: user.id,
       solicitante_nome: nomeEscrito.trim(),
       created_by: user.id,
+      setor_id: profile?.setor_id ?? null,
     });
     setBusy(false);
     if (error) {
