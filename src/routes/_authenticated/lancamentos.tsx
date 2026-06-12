@@ -143,7 +143,7 @@ function Lancamentos() {
               <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
               <SelectContent>
                 {tecnicos.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.full_name || p.email}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

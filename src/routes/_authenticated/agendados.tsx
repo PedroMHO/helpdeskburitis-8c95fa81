@@ -237,7 +237,7 @@ function Agendados() {
                   <SelectItem value={UNASSIGNED}>Não atribuído</SelectItem>
                   {tecnicos.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.full_name || p.email}
+                      {p.full_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
