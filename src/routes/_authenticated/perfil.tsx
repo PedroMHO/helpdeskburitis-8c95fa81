@@ -105,21 +105,20 @@ function Perfil() {
         return;
       }
 
-      const localidadeTexto = (t: (typeof mine)[number]) => {
+      // Apenas o nome limpo do Setor (sem Cidade/Bairro).
+      const setorTexto = (t: (typeof mine)[number]) => {
         const setor = loc.setores.find((s) => s.id === t.setor_id);
-        const bairro = loc.bairros.find((b) => b.id === t.bairro_id);
-        const cidade = loc.cidades.find((c) => c.id === t.cidade_id);
-        const parts = [setor?.nome, bairro?.nome, cidade?.nome].filter(Boolean);
-        return parts.length ? parts.join(" / ") : "Não informado";
+        return setor?.nome ?? "Não informado";
       };
       const tecnicoNome = (id: string | null) =>
         profiles.find((p) => p.id === id)?.full_name ?? "Não atribuído";
       const statusLabel = (s: string) =>
         ({
-          aguardando: "Aguardando",
+          aguardando: "Aberto",
           aguardando_agendamento: "Aguardando Agendamento",
           em_atendimento: "Em Atendimento",
           em_manutencao: "Em Manutenção",
+          pendente_conclusao: "Pendente de Conclusão",
           pronto_entrega: "Pronto para Entrega",
           finalizado: "Finalizado",
           agendado: "Agendado",
@@ -131,8 +130,8 @@ function Perfil() {
 
       const headers = [
         "Título do Chamado",
-        "Setor / Localidade",
-        "Técnico Responsável",
+        "Setor",
+        "Técnico que Finalizou",
         "Data de Abertura",
         "Hora de Abertura",
         "Data de Finalização",
@@ -145,8 +144,8 @@ function Perfil() {
         const fim = dt(t.closed_at);
         return [
           t.titulo,
-          localidadeTexto(t),
-          tecnicoNome(t.tecnico_id),
+          setorTexto(t),
+          tecnicoNome(t.closed_by ?? t.tecnico_id),
           dataBR(abertura),
           horaBR(abertura),
           dataBR(fim),
