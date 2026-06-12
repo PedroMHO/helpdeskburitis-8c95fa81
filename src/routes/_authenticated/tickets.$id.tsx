@@ -493,9 +493,17 @@ function TicketDetail() {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <Button variant="outline" onClick={() => setFinalizing(false)}>
               Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={parcialmenteCompletar}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Parcialmente Completado
             </Button>
             <Button onClick={finalizar} disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
