@@ -218,10 +218,10 @@ function Perfil() {
               wrapText: isWrap,
             },
             border: {
-              top: { style: "thin", color: { rgb: "D9D9D9" } },
-              bottom: { style: "thin", color: { rgb: "D9D9D9" } },
-              left: { style: "thin", color: { rgb: "D9D9D9" } },
-              right: { style: "thin", color: { rgb: "D9D9D9" } },
+              top: { style: "thick", color: { rgb: "000000" } },
+              bottom: { style: "thick", color: { rgb: "000000" } },
+              left: { style: "thick", color: { rgb: "000000" } },
+              right: { style: "thick", color: { rgb: "000000" } },
             },
           };
           if (isWrap) {
