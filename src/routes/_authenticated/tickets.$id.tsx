@@ -142,8 +142,8 @@ function TicketDetail() {
 
   const syncTechStatus = async (novo: TicketStatus) => {
     if (!user || !(isAdmin || isTecnico)) return;
+    // Em Manutenção libera o técnico (equipamento foi para o laboratório).
     if (novo === "em_atendimento") await setTechnicianStatus(user.id, "atendendo", ticket.setor_id);
-    else if (novo === "em_manutencao") await setTechnicianStatus(user.id, "em_manutencao", null);
     else await setTechnicianStatus(user.id, "disponivel", null);
   };
 
@@ -228,6 +228,29 @@ function TicketDetail() {
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado finalizado!");
+    setFinalizing(false);
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
+  const parcialmenteCompletar = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        status: "pendente_conclusao",
+        tecnico_id: ticket.tecnico_id ?? user.id,
+      })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "pendente_conclusao", note.trim() || undefined);
+      await setTechnicianStatus(user.id, "disponivel", null);
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado marcado como Pendente de Conclusão.");
     setFinalizing(false);
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
@@ -470,9 +493,17 @@ function TicketDetail() {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <Button variant="outline" onClick={() => setFinalizing(false)}>
               Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={parcialmenteCompletar}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Parcialmente Completado
             </Button>
             <Button onClick={finalizar} disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}

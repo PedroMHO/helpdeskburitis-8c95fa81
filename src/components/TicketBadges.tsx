@@ -39,6 +39,7 @@ const statusClasses: Record<TicketStatus, string> = {
   agendado: "bg-primary/15 text-primary",
   em_atendimento: "bg-status-atendimento/15 text-status-atendimento",
   em_manutencao: "bg-priority-alta/15 text-priority-alta",
+  pendente_conclusao: "bg-priority-media/15 text-priority-media",
   pronto_entrega: "bg-status-finalizado/15 text-status-finalizado",
   finalizado: "bg-status-finalizado/15 text-status-finalizado",
 };

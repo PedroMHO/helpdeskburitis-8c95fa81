@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 });
 
 function TicketsList() {
-  const { isAdmin, isTecnico, user } = useAuth();
+  const { isAdmin, isTecnico, isAtendente, user } = useAuth();
   const qc = useQueryClient();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
@@ -71,6 +71,8 @@ function TicketsList() {
     qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
+  const onlyOwnQueue = isTecnico && !isAdmin && !isAtendente;
+
   const filtered = useMemo(
     () =>
       tickets.filter((t) => {
@@ -78,12 +80,16 @@ function TicketsList() {
         // Agendados e Em Manutenção têm abas próprias.
         if (t.status !== "aguardando" && t.status !== "em_atendimento")
           return false;
+        // Técnico: apenas não atribuídos + atribuídos a ele mesmo.
+        // Admin e Atendente veem todos.
+        if (onlyOwnQueue && t.tecnico_id && t.tecnico_id !== user?.id)
+          return false;
         if (status !== "all" && t.status !== status) return false;
         if (priority !== "all" && t.priority !== priority) return false;
         if (q && !t.titulo.toLowerCase().includes(q.toLowerCase())) return false;
         return true;
       }),
-    [tickets, status, priority, q],
+    [tickets, status, priority, q, onlyOwnQueue, user?.id],
   );
 
   return (

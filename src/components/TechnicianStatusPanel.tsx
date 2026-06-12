@@ -46,11 +46,13 @@ export function TechnicianStatusPanel() {
       return { text: "Disponível", cls: "bg-status-finalizado/15 text-status-finalizado" };
     if (st.status === "em_manutencao")
       return { text: "Em Manutenção", cls: "bg-priority-alta/15 text-priority-alta" };
-    if (st.status === "atendendo")
+    if (st.status === "atendendo") {
+      const setor = setorNome(st.setor_id);
       return {
-        text: `Atendendo Setor: ${setorNome(st.setor_id) || "—"}`,
+        text: `Atendendo Setor: ${setor || "Não informado"}`,
         cls: "bg-status-atendimento/15 text-status-atendimento",
       };
+    }
     return { text: st.status, cls: "bg-muted text-muted-foreground" };
   };
 
@@ -62,30 +64,30 @@ export function TechnicianStatusPanel() {
         <Headset className="h-4 w-4 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">Status dos Técnicos</h2>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <ul className="flex flex-col gap-2">
         {tecnicos.map((t) => {
           const st = statuses.find((s) => s.user_id === t.id);
           const l = label(st);
           return (
-            <div
+            <li
               key={t.id}
-              className="flex items-center gap-2 rounded-lg border bg-background px-2.5 py-1.5"
+              className="flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2"
             >
-              <span className="text-xs font-medium text-foreground">
-                {t.full_name?.split(" ")[0] || "Técnico"}
+              <span className="text-base font-semibold text-foreground">
+                {t.full_name || "Técnico"} -
               </span>
               <span
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                  "rounded-full px-3 py-1 text-sm font-semibold",
                   l.cls,
                 )}
               >
                 {l.text}
               </span>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }
