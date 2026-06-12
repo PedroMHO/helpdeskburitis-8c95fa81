@@ -101,6 +101,7 @@ function TicketDetail() {
   const canSchedule = canManage || isAtendente;
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
+  const canTransfer = isAdmin || isAtendente;
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
   const locName = () => {
