@@ -60,7 +60,7 @@ function AuthPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl glass-card p-6 shadow-sm">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="l-email">E-mail</Label>

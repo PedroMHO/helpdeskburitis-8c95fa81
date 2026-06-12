@@ -151,7 +151,7 @@ function Agendados() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-12 text-center text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-xl glass-card p-12 text-center text-muted-foreground">
           <CalendarClock className="h-8 w-8" />
           <p className="text-sm">Nenhum chamado agendado.</p>
         </div>
@@ -160,7 +160,7 @@ function Agendados() {
           {filtered.map((t) => (
             <div
               key={t.id}
-              className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm"
+              className="flex flex-col gap-3 rounded-xl glass-card p-4 shadow-sm"
             >
               <Link
                 to="/tickets/$id"

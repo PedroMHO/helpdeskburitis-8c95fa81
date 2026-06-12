@@ -59,7 +59,7 @@ export function TechnicianStatusPanel() {
   if (tecnicos.length === 0) return null;
 
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm">
+    <div className="rounded-xl glass-card p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
         <Headset className="h-4 w-4 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">Status dos Técnicos</h2>

@@ -286,7 +286,7 @@ function Perfil() {
     <div className="mx-auto max-w-2xl space-y-5">
       <h1 className="text-2xl font-bold text-foreground">Meu Perfil</h1>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="rounded-xl glass-card p-6 shadow-sm">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
             {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
@@ -339,7 +339,7 @@ function Perfil() {
       </div>
 
       {!isSolicitante && (
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="rounded-xl glass-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatórios (Excel)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Exporta uma planilha Excel (.xlsx) formatada com os chamados

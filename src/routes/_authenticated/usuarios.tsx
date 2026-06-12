@@ -223,7 +223,7 @@ function Usuarios() {
 
       <form
         onSubmit={handleCreate}
-        className="space-y-4 rounded-xl border bg-card p-4 shadow-sm sm:p-6"
+        className="space-y-4 rounded-xl glass-card p-4 shadow-sm sm:p-6"
       >
         <div className="flex items-center gap-2">
           <UserPlus className="h-4 w-4 text-primary" />
@@ -268,7 +268,7 @@ function Usuarios() {
       </form>
 
 
-      <section className="rounded-xl border bg-card p-2 shadow-sm sm:p-4">
+      <section className="rounded-xl glass-card p-2 shadow-sm sm:p-4">
         {isLoading ? (
           <div className="flex justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

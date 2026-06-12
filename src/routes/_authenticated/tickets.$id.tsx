@@ -301,7 +301,7 @@ function TicketDetail() {
         Voltar
       </Button>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="rounded-xl glass-card p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h1 className="text-xl font-bold text-foreground">{ticket.titulo}</h1>
           <div className="flex items-center gap-2">

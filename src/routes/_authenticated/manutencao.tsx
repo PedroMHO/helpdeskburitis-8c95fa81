@@ -64,7 +64,7 @@ function Manutencao() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-12 text-center text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-xl glass-card p-12 text-center text-muted-foreground">
           <Wrench className="h-8 w-8" />
           <p className="text-sm">Nenhum chamado em manutenção.</p>
         </div>
@@ -75,7 +75,7 @@ function Manutencao() {
               key={t.id}
               to="/tickets/$id"
               params={{ id: t.id }}
-              className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+              className="flex flex-col gap-3 rounded-xl glass-card p-4 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-semibold leading-tight text-foreground">
