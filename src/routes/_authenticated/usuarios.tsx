@@ -185,6 +185,18 @@ function Usuarios() {
     qc.invalidateQueries({ queryKey: ["users-roles"] });
   };
 
+  const changeSetor = async (userId: string, value: string) => {
+    const setor_id = value === "none" ? null : value;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ setor_id })
+      .eq("id", userId);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Setor atualizado.");
+    qc.invalidateQueries({ queryKey: ["users-roles"] });
+  };
+
+
   const handleDelete = async (userId: string) => {
     setDeletingId(userId);
     try {
