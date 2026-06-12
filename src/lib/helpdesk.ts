@@ -6,6 +6,7 @@ export type TicketStatus =
   | "agendado"
   | "em_atendimento"
   | "em_manutencao"
+  | "pendente_conclusao"
   | "pronto_entrega"
   | "finalizado";
 export type TicketPriority = "baixa" | "media" | "alta";
@@ -17,11 +18,12 @@ export const PRIORITY_LABEL: Record<TicketPriority, string> = {
 };
 
 export const STATUS_LABEL: Record<TicketStatus, string> = {
-  aguardando: "Aguardando",
+  aguardando: "Aberto",
   aguardando_agendamento: "Aguardando Agendamento",
   agendado: "Agendado",
   em_atendimento: "Em Atendimento",
   em_manutencao: "Em Manutenção",
+  pendente_conclusao: "Pendente de Conclusão",
   pronto_entrega: "Pronto para Entrega",
   finalizado: "Finalizado",
 };
