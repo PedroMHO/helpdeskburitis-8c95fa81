@@ -162,18 +162,21 @@ export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTickets
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl border p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold capitalize text-foreground">
-          Volumetria por Dia Útil — {monthName} / {y}
-        </h2>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={weekly}>
-            <XAxis dataKey="dia" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
-            <Tooltip />
-            <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="glass-card rounded-2xl border p-5 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold capitalize text-foreground">
+            Volumetria por Dia Útil — {monthName} / {y}
+          </h2>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={weekly}>
+              <XAxis dataKey="dia" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
+              <Tooltip />
+              <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        {feedSlot}
       </div>
     </div>
   );
