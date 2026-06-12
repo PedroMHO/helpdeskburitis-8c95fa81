@@ -13,10 +13,36 @@ import {
 } from "recharts";
 import type { TicketRow } from "@/lib/data";
 
-export function DashboardCharts({ tickets }: { tickets: TicketRow[] }) {
+const SLICE_COLORS = [
+  "#2563eb",
+  "#16a34a",
+  "#eab308",
+  "#dc2626",
+  "#9333ea",
+  "#0891b2",
+  "#ea580c",
+  "#4f46e5",
+];
+
+const WEEKDAY_LABELS = [
+  "Segunda - Feira",
+  "Terça - Feira",
+  "Quarta - Feira",
+  "Quinta - Feira",
+  "Sexta - Feira",
+];
+
+interface NamedTicketsProps {
+  tickets: TicketRow[];
+  /** Resolve a user id to a display name (técnico que finalizou). */
+  resolveName: (id: string | null) => string;
+}
+
+export function DashboardCharts({ tickets, resolveName }: NamedTicketsProps) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
+  const monthName = now.toLocaleDateString("pt-BR", { month: "long" });
 
   const monthTickets = useMemo(
     () =>
@@ -27,69 +53,123 @@ export function DashboardCharts({ tickets }: { tickets: TicketRow[] }) {
     [tickets, y, m],
   );
 
-  const finalizados = monthTickets.filter((t) => t.status === "finalizado").length;
-  const abertos = monthTickets.length - finalizados;
-  const pieData = [
-    { name: "Finalizados", value: finalizados },
-    { name: "Em aberto", value: abertos },
-  ];
-  const PIE_COLORS = ["var(--status-finalizado)", "var(--status-aguardando)"];
-
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const daily = useMemo(() => {
-    const arr = Array.from({ length: daysInMonth }, (_, i) => ({
-      dia: String(i + 1),
-      total: 0,
-    }));
+  // Gráfico 1: taxa de conclusão individual por técnico (quem finalizou).
+  const perTech = useMemo(() => {
+    const counts = new Map<string, number>();
     for (const t of monthTickets) {
-      const d = new Date(t.created_at).getDate();
-      arr[d - 1].total += 1;
+      if (t.status === "finalizado") {
+        const who = t.closed_by ?? t.tecnico_id;
+        if (who) counts.set(who, (counts.get(who) ?? 0) + 1);
+      }
+    }
+    const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+    return Array.from(counts.entries()).map(([id, value]) => ({
+      name: resolveName(id),
+      value,
+      pct: total ? Math.round((value / total) * 100) : 0,
+    }));
+  }, [monthTickets, resolveName]);
+
+  // Gráfico 2: taxa de conclusão geral.
+  const finalizados = monthTickets.filter((t) => t.status === "finalizado").length;
+  const emAberto = monthTickets.length - finalizados;
+  const geralData = [
+    { name: "Concluídos", value: finalizados },
+    { name: "Em aberto", value: emAberto },
+  ];
+
+  // Gráfico 3 (barras): dias úteis seg-sex do mês atual.
+  const weekly = useMemo(() => {
+    const arr = WEEKDAY_LABELS.map((label) => ({ dia: label, total: 0 }));
+    for (const t of monthTickets) {
+      const wd = new Date(t.created_at).getDay(); // 0=dom .. 6=sab
+      if (wd >= 1 && wd <= 5) arr[wd - 1].total += 1;
     }
     return arr;
-  }, [monthTickets, daysInMonth]);
+  }, [monthTickets]);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">
-          Taxa de Resolução (mês atual)
-        </h2>
-        {monthTickets.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
-            Sem chamados neste mês.
-          </p>
-        ) : (
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={55}
-                outerRadius={85}
-                paddingAngle={2}
-              >
-                {pieData.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="glass-card rounded-2xl border p-5 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">
+            Taxa de Conclusão por Técnico (mês atual)
+          </h2>
+          {perTech.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              Sem conclusões neste mês.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={perTech}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={2}
+                >
+                  {perTech.map((_, i) => (
+                    <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v: number, _n, p) =>
+                    [`${(p?.payload as { pct: number }).pct}% (${v})`, p?.payload?.name]
+                  }
+                />
+                <Legend
+                  formatter={(_v, entry) => {
+                    const p = entry?.payload as unknown as { pct: number; name: string };
+                    return `${p?.pct}% - ${p?.name}`;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div className="glass-card rounded-2xl border p-5 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">
+            Taxa de Conclusão Geral (mês atual)
+          </h2>
+          {monthTickets.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              Sem chamados neste mês.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={geralData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={2}
+                >
+                  <Cell fill="#16a34a" />
+                  <Cell fill="#eab308" />
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
 
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">
-          Volumetria Diária (mês atual)
+      <div className="glass-card rounded-2xl border p-5 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold capitalize text-foreground">
+          Volumetria por Dia Útil — {monthName} / {y}
         </h2>
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={daily}>
-            <XAxis dataKey="dia" tick={{ fontSize: 11 }} interval={2} />
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={weekly}>
+            <XAxis dataKey="dia" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
             <Tooltip />
-            <Bar dataKey="total" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
