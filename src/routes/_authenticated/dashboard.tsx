@@ -193,6 +193,7 @@ function Dashboard() {
               </ul>
             )}
           </div>
+          )
         }
       />
 
