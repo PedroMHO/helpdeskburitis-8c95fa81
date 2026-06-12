@@ -439,6 +439,14 @@ export type Database = {
         }[]
       }
       promote_due_scheduled_tickets: { Args: never; Returns: undefined }
+      technicians_directory: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+          setor_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "tecnico" | "usuario" | "atendente" | "solicitante"
