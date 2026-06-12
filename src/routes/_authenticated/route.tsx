@@ -61,6 +61,12 @@ const NAV: NavItem[] = [
     icon: Wrench,
     show: ({ isSolicitante }) => !isSolicitante,
   },
+  {
+    to: "/pendentes",
+    label: "Pendentes de Conclusão",
+    icon: ClipboardList,
+    show: ({ isAdmin, isTecnico }) => isAdmin || isTecnico,
+  },
   { to: "/historico", label: "Histórico", icon: History, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/tickets/novo",
