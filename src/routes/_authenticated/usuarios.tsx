@@ -7,6 +7,7 @@ import { Shield, Wrench, User as UserIcon, Loader2, UserPlus, Headset, Trash2 } 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { createUserAccount, deleteUserAccount } from "@/lib/admin-users.functions";
+import { fetchLocalidades } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,7 @@ interface UserRow {
   full_name: string;
   email: string;
   role: AppRole;
+  setor_id: string | null;
 }
 
 const ROLE_RANK: Record<AppRole, number> = {
@@ -52,7 +54,7 @@ const ROLE_RANK: Record<AppRole, number> = {
 async function fetchUsers(): Promise<UserRow[]> {
   const [{ data: profiles, error: pErr }, { data: roleRows, error: rErr }] =
     await Promise.all([
-      supabase.from("profiles").select("id, full_name, email").order("full_name"),
+      supabase.from("profiles").select("id, full_name, email, setor_id").order("full_name"),
       supabase.from("user_roles").select("user_id, role"),
     ]);
   if (pErr) throw pErr;
@@ -64,11 +66,12 @@ async function fetchUsers(): Promise<UserRow[]> {
     if (!cur || ROLE_RANK[r.role] > ROLE_RANK[cur]) roleByUser.set(r.user_id, r.role);
   }
 
-  return ((profiles ?? []) as { id: string; full_name: string; email: string }[]).map(
+  return ((profiles ?? []) as { id: string; full_name: string; email: string; setor_id: string | null }[]).map(
     (p) => ({
       id: p.id,
       full_name: p.full_name,
       email: p.email,
+      setor_id: p.setor_id ?? null,
       role: roleByUser.get(p.id) ?? "usuario",
     }),
   );
@@ -119,6 +122,12 @@ function Usuarios() {
     queryFn: fetchUsers,
     enabled: isAdmin,
   });
+  const { data: loc } = useQuery({
+    queryKey: ["localidades"],
+    queryFn: fetchLocalidades,
+    enabled: isAdmin,
+  });
+
 
   const createUser = useServerFn(createUserAccount);
   const deleteUser = useServerFn(deleteUserAccount);
@@ -175,6 +184,18 @@ function Usuarios() {
     toast.success("Permissão atualizada.");
     qc.invalidateQueries({ queryKey: ["users-roles"] });
   };
+
+  const changeSetor = async (userId: string, value: string) => {
+    const setor_id = value === "none" ? null : value;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ setor_id })
+      .eq("id", userId);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Setor atualizado.");
+    qc.invalidateQueries({ queryKey: ["users-roles"] });
+  };
+
 
   const handleDelete = async (userId: string) => {
     setDeletingId(userId);
@@ -276,7 +297,23 @@ function Usuarios() {
                     </span>
                     <p className="mt-0.5 text-xs text-muted-foreground/80">{Meta.perms}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                    <Select
+                      value={u.setor_id ?? "none"}
+                      onValueChange={(v) => changeSetor(u.id, v)}
+                    >
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue placeholder="Setor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem setor</SelectItem>
+                        {(loc?.setores ?? []).map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select
                       value={u.role}
                       onValueChange={(v) => changeRole(u.id, v as AppRole)}
@@ -293,6 +330,7 @@ function Usuarios() {
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
                     </Select>
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
