@@ -291,6 +291,7 @@ export type Database = {
           descricao: string
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
+          reminded_24h: boolean
           scheduled_at: string | null
           setor_id: string | null
           solicitante_id: string
@@ -313,6 +314,7 @@ export type Database = {
           descricao?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          reminded_24h?: boolean
           scheduled_at?: string | null
           setor_id?: string | null
           solicitante_id: string
@@ -335,6 +337,7 @@ export type Database = {
           descricao?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          reminded_24h?: boolean
           scheduled_at?: string | null
           setor_id?: string | null
           solicitante_id?: string
@@ -430,6 +433,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_team: {
+        Args: { _body: string; _ticket: string; _title: string }
+        Returns: undefined
+      }
       profiles_directory: {
         Args: never
         Returns: {
@@ -439,6 +446,7 @@ export type Database = {
         }[]
       }
       promote_due_scheduled_tickets: { Args: never; Returns: undefined }
+      send_scheduled_reminders: { Args: never; Returns: undefined }
       technicians_directory: {
         Args: never
         Returns: {
