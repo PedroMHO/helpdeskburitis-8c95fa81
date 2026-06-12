@@ -45,24 +45,6 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: String(form.get("full_name")) },
-      },
-    });
-    setBusy(false);
-    if (error) return toast.error("Falha no cadastro", { description: error.message });
-    toast.success("Conta criada!", { description: "Você já pode acessar o sistema." });
-    navigate({ to: "/dashboard", replace: true });
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-secondary to-background px-4">
       <div className="w-full max-w-md">
