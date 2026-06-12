@@ -163,7 +163,9 @@ export function DashboardCharts({ tickets, resolveName, feedSlot, showCompletion
               </PieChart>
             </ResponsiveContainer>
           )}
-        </div>
+      </div>
+      )}
+
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
