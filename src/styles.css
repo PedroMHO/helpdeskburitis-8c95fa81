@@ -183,7 +183,7 @@ body::before {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  filter: blur(18px);
+  filter: blur(18px) saturate(0.5) brightness(1.08);
   transform: scale(1.08);
   pointer-events: none;
 }
