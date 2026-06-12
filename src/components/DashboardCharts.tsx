@@ -38,9 +38,11 @@ interface NamedTicketsProps {
   resolveName: (id: string | null) => string;
   /** Conteúdo opcional renderizado ao lado do gráfico de barras. */
   feedSlot?: ReactNode;
+  /** Exibe os gráficos de conclusão (por técnico e geral). */
+  showCompletionCharts?: boolean;
 }
 
-export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTicketsProps) {
+export function DashboardCharts({ tickets, resolveName, feedSlot, showCompletionCharts = true }: NamedTicketsProps) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
@@ -92,7 +94,9 @@ export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTickets
 
   return (
     <div className="space-y-4">
+      {showCompletionCharts && (
       <div className="grid gap-4 lg:grid-cols-2">
+
         <div className="glass-card rounded-2xl border p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">
             Taxa de Conclusão por Técnico (mês atual)
@@ -159,8 +163,10 @@ export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTickets
               </PieChart>
             </ResponsiveContainer>
           )}
-        </div>
       </div>
+      </div>
+      )}
+
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card rounded-2xl border p-5 shadow-sm">
