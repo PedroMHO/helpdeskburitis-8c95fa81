@@ -38,9 +38,11 @@ interface NamedTicketsProps {
   resolveName: (id: string | null) => string;
   /** Conteúdo opcional renderizado ao lado do gráfico de barras. */
   feedSlot?: ReactNode;
+  /** Exibe os gráficos de conclusão (por técnico e geral). */
+  showCompletionCharts?: boolean;
 }
 
-export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTicketsProps) {
+export function DashboardCharts({ tickets, resolveName, feedSlot, showCompletionCharts = true }: NamedTicketsProps) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
