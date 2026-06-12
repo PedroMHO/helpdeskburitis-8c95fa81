@@ -47,7 +47,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: ({ isSolicitante }) => !isSolicitante },
+  { to: "/dashboard", label: "Painel", icon: LayoutDashboard, show: () => true },
   { to: "/tickets", label: "Chamados", icon: Ticket, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/agendados",
