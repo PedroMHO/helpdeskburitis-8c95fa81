@@ -15,7 +15,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/historico")({
   head: () => ({
-    meta: [{ title: "Histórico — Chamados Informática Buritis" }],
+    meta: [{ title: "Histórico — HelpDesk Buritis" }],
   }),
   component: Historico,
 });

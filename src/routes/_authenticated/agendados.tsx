@@ -37,7 +37,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/agendados")({
   head: () => ({
-    meta: [{ title: "Chamados Agendados — Chamados Informática Buritis" }],
+    meta: [{ title: "Chamados Agendados — HelpDesk Buritis" }],
   }),
   component: Agendados,
 });

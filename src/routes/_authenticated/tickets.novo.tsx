@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/tickets/novo")({
-  head: () => ({ meta: [{ title: "Abrir Chamado — Chamados Informática Buritis" }] }),
+  head: () => ({ meta: [{ title: "Abrir Chamado — HelpDesk Buritis" }] }),
   component: NovoChamado,
 });
 

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/tickets/")({
-  head: () => ({ meta: [{ title: "Chamados — Chamados Informática Buritis" }] }),
+  head: () => ({ meta: [{ title: "Chamados — HelpDesk Buritis" }] }),
   component: TicketsList,
 });
 

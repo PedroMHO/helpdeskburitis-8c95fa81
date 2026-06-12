@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
-    meta: [{ title: "Painel — Chamados Informática Buritis" }],
+    meta: [{ title: "Painel — HelpDesk Buritis" }],
   }),
   component: Dashboard,
 });

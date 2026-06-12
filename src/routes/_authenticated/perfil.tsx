@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
-  head: () => ({ meta: [{ title: "Meu Perfil — Chamados Informática Buritis" }] }),
+  head: () => ({ meta: [{ title: "Meu Perfil — HelpDesk Buritis" }] }),
   component: Perfil,
 });
 

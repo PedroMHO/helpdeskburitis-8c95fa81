@@ -48,7 +48,7 @@ import {
 import { STATUS_LABEL, type TicketStatus } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/_authenticated/tickets/$id")({
-  head: () => ({ meta: [{ title: "Chamado — Chamados Informática Buritis" }] }),
+  head: () => ({ meta: [{ title: "Chamado — HelpDesk Buritis" }] }),
   component: TicketDetail,
 });
 

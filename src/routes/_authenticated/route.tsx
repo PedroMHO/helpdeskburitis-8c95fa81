@@ -146,7 +146,7 @@ function AuthenticatedLayout() {
             <Headset className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-bold">Chamados Buritis</p>
+            <p className="text-sm font-bold">HelpDesk Buritis</p>
             <p className="text-[11px] text-sidebar-foreground/60">Informática</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ function AuthenticatedLayout() {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-semibold lg:hidden">Chamados Buritis</span>
+          <span className="font-semibold lg:hidden">HelpDesk Buritis</span>
           <div className="ml-auto">
             <NotificationsBell />
           </div>
