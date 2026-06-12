@@ -58,21 +58,27 @@ export async function fetchProfiles(): Promise<ProfileLite[]> {
   );
 }
 
-/** Technicians + admins, for assignment dropdowns. */
-export async function fetchTecnicos(): Promise<ProfileLite[]> {
-  const { data: roleRows, error } = await supabase
-    .from("user_roles")
-    .select("user_id, role")
-    .in("role", ["tecnico", "admin"]);
+export interface TecnicoLite {
+  id: string;
+  full_name: string;
+  setor_id: string | null;
+}
+
+/**
+ * Technicians + admins, for assignment dropdowns and the status board.
+ * Uses a security-definer directory so every authenticated user (incl.
+ * técnicos) sees the full list — not just themselves.
+ */
+export async function fetchTecnicos(): Promise<TecnicoLite[]> {
+  const { data, error } = await supabase.rpc("technicians_directory");
   if (error) throw error;
-  const ids = Array.from(new Set((roleRows ?? []).map((r) => r.user_id)));
-  if (ids.length === 0) return [];
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .in("id", ids)
-    .order("full_name");
-  return (data ?? []) as ProfileLite[];
+  return ((data ?? []) as TecnicoLite[])
+    .map((t) => ({
+      id: t.id,
+      full_name: t.full_name ?? "",
+      setor_id: (t as { setor_id: string | null }).setor_id ?? null,
+    }))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name, "pt-BR"));
 }
 
 export interface Cidade {
