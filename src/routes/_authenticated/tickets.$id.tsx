@@ -476,6 +476,38 @@ function TicketDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={transferring} onOpenChange={setTransferring}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Técnico responsável</Label>
+            <Select value={transferTo} onValueChange={setTransferTo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um técnico" />
+              </SelectTrigger>
+              <SelectContent>
+                {tecnicos.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferring(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={transferir} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Transferência
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={scheduling} onOpenChange={setScheduling}>
 
         <DialogContent>
