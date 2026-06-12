@@ -325,10 +325,12 @@ function Perfil() {
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" value={profile?.email ?? ""} disabled />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="cargo">Cargo / Setor</Label>
-            <Input id="cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
-          </div>
+          {!isSolicitante && (
+            <div className="space-y-2">
+              <Label htmlFor="cargo">Cargo / Setor</Label>
+              <Input id="cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
+            </div>
+          )}
           <Button onClick={save} disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             Salvar alterações
