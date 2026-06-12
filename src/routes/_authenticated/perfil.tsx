@@ -177,10 +177,10 @@ function Perfil() {
         fill: { fgColor: { rgb: "1F3864" } },
         alignment: { horizontal: "center", vertical: "center", wrapText: true },
         border: {
-          top: { style: "thin", color: { rgb: "163057" } },
-          bottom: { style: "thin", color: { rgb: "163057" } },
-          left: { style: "thin", color: { rgb: "163057" } },
-          right: { style: "thin", color: { rgb: "163057" } },
+          top: { style: "thick", color: { rgb: "000000" } },
+          bottom: { style: "thick", color: { rgb: "000000" } },
+          left: { style: "thick", color: { rgb: "000000" } },
+          right: { style: "thick", color: { rgb: "000000" } },
         },
       };
       // column index → horizontal alignment for body cells
