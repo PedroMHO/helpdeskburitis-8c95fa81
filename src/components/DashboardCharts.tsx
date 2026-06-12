@@ -164,9 +164,9 @@ export function DashboardCharts({ tickets, resolveName, feedSlot, showCompletion
             </ResponsiveContainer>
           )}
       </div>
+      </div>
       )}
 
-      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card rounded-2xl border p-5 shadow-sm">
