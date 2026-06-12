@@ -24,7 +24,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
 import { Route as AuthenticatedAgendadosRouteImport } from './routes/_authenticated/agendados'
 import { Route as AuthenticatedTicketsIndexRouteImport } from './routes/_authenticated/tickets.index'
-import { Route as ApiPublicDebugTecnicoRouteImport } from './routes/api/public/debug-tecnico'
 import { Route as AuthenticatedTicketsNovoRouteImport } from './routes/_authenticated/tickets.novo'
 import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authenticated/tickets.$id'
 
@@ -104,11 +103,6 @@ const AuthenticatedTicketsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedTicketsRoute,
   } as any)
-const ApiPublicDebugTecnicoRoute = ApiPublicDebugTecnicoRouteImport.update({
-  id: '/api/public/debug-tecnico',
-  path: '/api/public/debug-tecnico',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedTicketsNovoRoute =
   AuthenticatedTicketsNovoRouteImport.update({
     id: '/novo',
@@ -137,7 +131,6 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
-  '/api/public/debug-tecnico': typeof ApiPublicDebugTecnicoRoute
   '/tickets/': typeof AuthenticatedTicketsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -155,7 +148,6 @@ export interface FileRoutesByTo {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/novo': typeof AuthenticatedTicketsNovoRoute
-  '/api/public/debug-tecnico': typeof ApiPublicDebugTecnicoRoute
   '/tickets': typeof AuthenticatedTicketsIndexRoute
 }
 export interface FileRoutesById {
@@ -176,7 +168,6 @@ export interface FileRoutesById {
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/_authenticated/tickets/novo': typeof AuthenticatedTicketsNovoRoute
-  '/api/public/debug-tecnico': typeof ApiPublicDebugTecnicoRoute
   '/_authenticated/tickets/': typeof AuthenticatedTicketsIndexRoute
 }
 export interface FileRouteTypes {
@@ -197,7 +188,6 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/tickets/$id'
     | '/tickets/novo'
-    | '/api/public/debug-tecnico'
     | '/tickets/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -215,7 +205,6 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/tickets/$id'
     | '/tickets/novo'
-    | '/api/public/debug-tecnico'
     | '/tickets'
   id:
     | '__root__'
@@ -235,7 +224,6 @@ export interface FileRouteTypes {
     | '/_authenticated/usuarios'
     | '/_authenticated/tickets/$id'
     | '/_authenticated/tickets/novo'
-    | '/api/public/debug-tecnico'
     | '/_authenticated/tickets/'
   fileRoutesById: FileRoutesById
 }
@@ -244,7 +232,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiPublicDebugTecnicoRoute: typeof ApiPublicDebugTecnicoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -354,13 +341,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTicketsIndexRouteImport
       parentRoute: typeof AuthenticatedTicketsRoute
     }
-    '/api/public/debug-tecnico': {
-      id: '/api/public/debug-tecnico'
-      path: '/api/public/debug-tecnico'
-      fullPath: '/api/public/debug-tecnico'
-      preLoaderRoute: typeof ApiPublicDebugTecnicoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/tickets/novo': {
       id: '/_authenticated/tickets/novo'
       path: '/novo'
@@ -427,7 +407,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiPublicDebugTecnicoRoute: ApiPublicDebugTecnicoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
