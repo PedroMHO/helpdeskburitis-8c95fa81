@@ -206,7 +206,7 @@ function AuthenticatedLayout() {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b bg-card px-4 py-3">
+        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3 backdrop-blur-2xl backdrop-saturate-150">
           <Button
             variant="ghost"
             size="icon"
