@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
-import { fetchTickets, fetchLocalidades } from "@/lib/data";
+import { useEffect, useMemo, useState } from "react";
+import { Ticket, Clock, Wrench, CheckCircle2, Activity } from "lucide-react";
+import { fetchTickets, fetchLocalidades, fetchProfiles } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { TechnicianStatusPanel } from "@/components/TechnicianStatusPanel";
@@ -27,7 +28,7 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm">
+    <div className="glass-card rounded-2xl border p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>
@@ -41,9 +42,39 @@ function StatCard({
   );
 }
 
+function greeting(d: Date) {
+  const h = d.getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function BrasiliaClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const text = now.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-4 py-1.5 text-sm font-medium text-foreground shadow-sm">
+      <Clock className="h-4 w-4 text-muted-foreground" />
+      {text} (Brasília)
+    </span>
+  );
+}
+
 function Dashboard() {
-  const { profile, isAdmin, isTecnico } = useAuth();
-  const { data: tickets = [], isLoading } = useQuery({
+  const { profile, user, isSolicitante } = useAuth();
+  const { data: allTickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
   });
@@ -51,52 +82,103 @@ function Dashboard() {
     queryKey: ["localidades"],
     queryFn: fetchLocalidades,
   });
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: fetchProfiles,
+  });
+
+  // RBAC: solicitante só enxerga métricas dos próprios chamados.
+  const tickets = useMemo(
+    () =>
+      isSolicitante
+        ? allTickets.filter(
+            (t) => t.created_by === user?.id || t.solicitante_id === user?.id,
+          )
+        : allTickets,
+    [allTickets, isSolicitante, user?.id],
+  );
+
   const setorNome = (id: string | null) =>
     id ? localidades?.setores.find((s) => s.id === id)?.nome ?? null : null;
+  const resolveName = (id: string | null) =>
+    (id && profiles.find((p) => p.id === id)?.full_name) || "Técnico";
 
   const aguardando = tickets.filter((t) => t.status === "aguardando").length;
   const andamento = tickets.filter((t) => t.status === "em_atendimento").length;
   const manutencao = tickets.filter((t) => t.status === "em_manutencao").length;
   const finalizados = tickets.filter((t) => t.status === "finalizado").length;
 
-  // Recentes: somente chamados em aberto reais — exclui finalizados,
-  // agendados (aba própria) e em manutenção (aba própria).
   const recentes = tickets
-    .filter(
-      (t) =>
-        t.status === "aguardando" || t.status === "em_atendimento",
-    )
+    .filter((t) => t.status === "aguardando" || t.status === "em_atendimento")
     .slice(0, 6);
+
+  // Feed de atividades: conclusões mais recentes.
+  const feed = useMemo(
+    () =>
+      tickets
+        .filter((t) => t.status === "finalizado" && t.closed_at)
+        .sort(
+          (a, b) =>
+            new Date(b.closed_at!).getTime() - new Date(a.closed_at!).getTime(),
+        )
+        .slice(0, 30),
+    [tickets],
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          Olá, {profile?.full_name?.split(" ")[0] || "bem-vindo"} 👋
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {isAdmin
-            ? "Visão geral de todos os chamados."
-            : isTecnico
-              ? "Chamados disponíveis e atribuídos a você."
-              : "Acompanhe suas solicitações."}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            {greeting(new Date())}, {profile?.full_name?.split(" ")[0] || "bem-vindo"}
+          </h1>
+          <p className="text-sm text-muted-foreground">Visão Geral Do Sistema</p>
+        </div>
+        <BrasiliaClock />
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Aguardando" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
+        <StatCard label="Aberto" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
         <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
         <StatCard label="Finalizados" value={finalizados} icon={CheckCircle2} accent="bg-status-finalizado/15 text-status-finalizado" />
         <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
       </div>
 
-      <TechnicianStatusPanel />
+      {!isSolicitante && <TechnicianStatusPanel />}
 
-      {isAdmin && <DashboardCharts tickets={tickets} />}
+      <DashboardCharts tickets={tickets} resolveName={resolveName} />
 
+      <div className="glass-card rounded-2xl border shadow-sm">
+        <div className="flex items-center gap-2 border-b px-5 py-4">
+          <Activity className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-foreground">Feed de Atividades:</h2>
+        </div>
+        {feed.length === 0 ? (
+          <p className="p-5 text-sm text-muted-foreground">Nenhuma conclusão registrada.</p>
+        ) : (
+          <ul className="max-h-72 space-y-1 overflow-auto p-4">
+            {feed.map((t) => (
+              <li key={t.id} className="rounded-lg px-3 py-2 text-sm hover:bg-muted/50">
+                <span className="font-medium text-foreground">
+                  {resolveName(t.closed_by ?? t.tecnico_id)}
+                </span>{" "}
+                Concluiu um chamado -{" "}
+                <span className="text-muted-foreground">
+                  {new Date(t.closed_at!).toLocaleString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-
-      <div className="rounded-xl border bg-card shadow-sm">
+      <div className="glass-card rounded-2xl border shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <h2 className="font-semibold text-foreground">Chamados recentes</h2>
           <Link to="/tickets" className="text-sm font-medium text-primary hover:underline">
