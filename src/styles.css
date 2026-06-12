@@ -181,19 +181,19 @@ body::before {
   z-index: 0;
   background-image:
     radial-gradient(
-      55rem 55rem at 12% -10%,
-      color-mix(in oklab, var(--primary) 22%, transparent),
-      transparent 60%
+      48rem 48rem at 12% -10%,
+      color-mix(in oklab, var(--primary) 42%, transparent),
+      transparent 52%
     ),
     radial-gradient(
-      50rem 50rem at 110% 10%,
-      color-mix(in oklab, oklch(0.7 0.18 320) 20%, transparent),
-      transparent 60%
+      44rem 44rem at 110% 10%,
+      color-mix(in oklab, oklch(0.7 0.18 320) 40%, transparent),
+      transparent 52%
     ),
     radial-gradient(
-      55rem 55rem at 90% 120%,
-      color-mix(in oklab, oklch(0.75 0.16 200) 18%, transparent),
-      transparent 60%
+      48rem 48rem at 90% 120%,
+      color-mix(in oklab, oklch(0.75 0.16 200) 36%, transparent),
+      transparent 52%
     );
   pointer-events: none;
 }
