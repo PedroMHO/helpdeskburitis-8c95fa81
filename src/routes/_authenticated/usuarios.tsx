@@ -7,6 +7,7 @@ import { Shield, Wrench, User as UserIcon, Loader2, UserPlus, Headset, Trash2 } 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { createUserAccount, deleteUserAccount } from "@/lib/admin-users.functions";
+import { fetchLocalidades } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
