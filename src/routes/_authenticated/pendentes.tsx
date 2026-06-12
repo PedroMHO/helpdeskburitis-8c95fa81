@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/pendentes")({
 });
 
 function Pendentes() {
-  const { isAdmin, isTecnico, loading } = useAuth();
+  const { isAdmin, isTecnico, isAtendente, loading } = useAuth();
   const navigate = useNavigate();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
@@ -28,8 +28,9 @@ function Pendentes() {
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    if (!loading && !isAdmin && !isTecnico) navigate({ to: "/dashboard", replace: true });
-  }, [loading, isAdmin, isTecnico, navigate]);
+    if (!loading && !isAdmin && !isTecnico && !isAtendente)
+      navigate({ to: "/dashboard", replace: true });
+  }, [loading, isAdmin, isTecnico, isAtendente, navigate]);
 
   const setorNome = (id: string | null) =>
     id ? loc?.setores.find((s) => s.id === id)?.nome ?? null : null;
@@ -44,7 +45,7 @@ function Pendentes() {
     [tickets, q],
   );
 
-  if (!isAdmin && !isTecnico) return null;
+  if (!isAdmin && !isTecnico && !isAtendente) return null;
 
   return (
     <div className="space-y-5">
