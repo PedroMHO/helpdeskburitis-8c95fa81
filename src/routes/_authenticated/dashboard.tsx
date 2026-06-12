@@ -156,6 +156,7 @@ function Dashboard() {
       <DashboardCharts
         tickets={tickets}
         resolveName={resolveName}
+        showCompletionCharts={!isSolicitante}
         feedSlot={
           <div className="glass-card rounded-2xl border shadow-sm">
             <div className="flex items-center gap-2 border-b px-5 py-4">
