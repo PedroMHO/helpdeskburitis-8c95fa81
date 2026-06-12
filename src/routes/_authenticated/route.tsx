@@ -216,7 +216,8 @@ function AuthenticatedLayout() {
             <Menu className="h-5 w-5" />
           </Button>
           <span className="font-semibold lg:hidden">HelpDesk Buritis</span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <AccessibilityToggle />
             <NotificationsBell />
           </div>
         </header>
