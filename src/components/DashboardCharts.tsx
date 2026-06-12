@@ -36,9 +36,11 @@ interface NamedTicketsProps {
   tickets: TicketRow[];
   /** Resolve a user id to a display name (técnico que finalizou). */
   resolveName: (id: string | null) => string;
+  /** Conteúdo opcional renderizado ao lado do gráfico de barras. */
+  feedSlot?: ReactNode;
 }
 
-export function DashboardCharts({ tickets, resolveName }: NamedTicketsProps) {
+export function DashboardCharts({ tickets, resolveName, feedSlot }: NamedTicketsProps) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
