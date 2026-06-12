@@ -275,6 +275,25 @@ function TicketDetail() {
     navigate({ to: "/tickets" });
   };
 
+  const transferir = async () => {
+    if (!user) return;
+    if (!transferTo) return toast.error("Selecione um técnico.");
+    if (transferTo === ticket.tecnico_id)
+      return toast.error("O chamado já está atribuído a este técnico.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ tecnico_id: transferTo })
+      .eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado transferido!");
+    setTransferring(false);
+    setTransferTo("");
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/tickets" })}>
