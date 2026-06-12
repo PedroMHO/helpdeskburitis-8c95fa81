@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/tickets/$id")({
 
 function TicketDetail() {
   const { id } = Route.useParams();
-  const { user, isAdmin, isTecnico, isAtendente } = useAuth();
+  const { user, isAdmin, isTecnico, isAtendente, isSolicitante } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
