@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Acesso — Chamados Informática Buritis" },
+      { title: "Acesso — HelpDesk Buritis" },
       {
         name: "description",
         content:
@@ -71,7 +71,7 @@ function AuthPage() {
             <Headset className="h-7 w-7" />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-foreground">
-            Chamados Informática Buritis
+            HelpDesk Buritis
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sistema corporativo de helpdesk

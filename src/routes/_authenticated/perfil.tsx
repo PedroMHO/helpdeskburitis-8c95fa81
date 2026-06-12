@@ -14,13 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
-  head: () => ({ meta: [{ title: "Meu Perfil — Chamados Informática Buritis" }] }),
+  head: () => ({ meta: [{ title: "Meu Perfil — HelpDesk Buritis" }] }),
   component: Perfil,
 });
 
 
 function Perfil() {
   const { user, profile, roles, refresh } = useAuth();
+  const isSolicitante = roles.includes("solicitante");
   const qc = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [cargo, setCargo] = useState("");
@@ -105,21 +106,20 @@ function Perfil() {
         return;
       }
 
-      const localidadeTexto = (t: (typeof mine)[number]) => {
+      // Apenas o nome limpo do Setor (sem Cidade/Bairro).
+      const setorTexto = (t: (typeof mine)[number]) => {
         const setor = loc.setores.find((s) => s.id === t.setor_id);
-        const bairro = loc.bairros.find((b) => b.id === t.bairro_id);
-        const cidade = loc.cidades.find((c) => c.id === t.cidade_id);
-        const parts = [setor?.nome, bairro?.nome, cidade?.nome].filter(Boolean);
-        return parts.length ? parts.join(" / ") : "Não informado";
+        return setor?.nome ?? "Não informado";
       };
       const tecnicoNome = (id: string | null) =>
         profiles.find((p) => p.id === id)?.full_name ?? "Não atribuído";
       const statusLabel = (s: string) =>
         ({
-          aguardando: "Aguardando",
+          aguardando: "Aberto",
           aguardando_agendamento: "Aguardando Agendamento",
           em_atendimento: "Em Atendimento",
           em_manutencao: "Em Manutenção",
+          pendente_conclusao: "Pendente de Conclusão",
           pronto_entrega: "Pronto para Entrega",
           finalizado: "Finalizado",
           agendado: "Agendado",
@@ -131,8 +131,8 @@ function Perfil() {
 
       const headers = [
         "Título do Chamado",
-        "Setor / Localidade",
-        "Técnico Responsável",
+        "Setor",
+        "Técnico que Finalizou",
         "Data de Abertura",
         "Hora de Abertura",
         "Data de Finalização",
@@ -145,8 +145,8 @@ function Perfil() {
         const fim = dt(t.closed_at);
         return [
           t.titulo,
-          localidadeTexto(t),
-          tecnicoNome(t.tecnico_id),
+          setorTexto(t),
+          tecnicoNome(t.closed_by ?? t.tecnico_id),
           dataBR(abertura),
           horaBR(abertura),
           dataBR(fim),
@@ -178,10 +178,10 @@ function Perfil() {
         fill: { fgColor: { rgb: "1F3864" } },
         alignment: { horizontal: "center", vertical: "center", wrapText: true },
         border: {
-          top: { style: "thin", color: { rgb: "163057" } },
-          bottom: { style: "thin", color: { rgb: "163057" } },
-          left: { style: "thin", color: { rgb: "163057" } },
-          right: { style: "thin", color: { rgb: "163057" } },
+          top: { style: "thick", color: { rgb: "000000" } },
+          bottom: { style: "thick", color: { rgb: "000000" } },
+          left: { style: "thick", color: { rgb: "000000" } },
+          right: { style: "thick", color: { rgb: "000000" } },
         },
       };
       // column index → horizontal alignment for body cells
@@ -219,10 +219,10 @@ function Perfil() {
               wrapText: isWrap,
             },
             border: {
-              top: { style: "thin", color: { rgb: "D9D9D9" } },
-              bottom: { style: "thin", color: { rgb: "D9D9D9" } },
-              left: { style: "thin", color: { rgb: "D9D9D9" } },
-              right: { style: "thin", color: { rgb: "D9D9D9" } },
+              top: { style: "thick", color: { rgb: "000000" } },
+              bottom: { style: "thick", color: { rgb: "000000" } },
+              left: { style: "thick", color: { rgb: "000000" } },
+              right: { style: "thick", color: { rgb: "000000" } },
             },
           };
           if (isWrap) {
@@ -325,10 +325,12 @@ function Perfil() {
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" value={profile?.email ?? ""} disabled />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="cargo">Cargo / Setor</Label>
-            <Input id="cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
-          </div>
+          {!isSolicitante && (
+            <div className="space-y-2">
+              <Label htmlFor="cargo">Cargo / Setor</Label>
+              <Input id="cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
+            </div>
+          )}
           <Button onClick={save} disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             Salvar alterações
@@ -336,6 +338,7 @@ function Perfil() {
         </div>
       </div>
 
+      {!isSolicitante && (
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatórios (Excel)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -382,6 +385,7 @@ function Perfil() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

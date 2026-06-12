@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/manutencao")({
   head: () => ({
-    meta: [{ title: "Em Manutenção — Chamados Informática Buritis" }],
+    meta: [{ title: "Em Manutenção — HelpDesk Buritis" }],
   }),
   component: Manutencao,
 });
