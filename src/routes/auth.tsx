@@ -61,60 +61,23 @@ function AuthPage() {
         </div>
 
         <div className="rounded-xl border bg-card p-6 shadow-sm">
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="l-email">E-mail</Label>
-                  <Input id="l-email" name="email" type="email" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="l-pass">Senha</Label>
-                  <Input id="l-pass" name="password" type="password" required />
-                </div>
-                <Button type="submit" className="w-full" disabled={busy}>
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Entrar
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="s-name">Nome completo</Label>
-                  <Input id="s-name" name="full_name" type="text" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="s-email">E-mail</Label>
-                  <Input id="s-email" name="email" type="email" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="s-pass">Senha</Label>
-                  <Input
-                    id="s-pass"
-                    name="password"
-                    type="password"
-                    minLength={6}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={busy}>
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Criar conta
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="l-email">E-mail</Label>
+              <Input id="l-email" name="email" type="email" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="l-pass">Senha</Label>
+              <Input id="l-pass" name="password" type="password" required />
+            </div>
+            <Button type="submit" className="w-full" disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Entrar
+            </Button>
+          </form>
         </div>
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Novos cadastros entram como Usuário Comum. Papéis de Técnico e
-          Administrador são definidos por um administrador.
+          Apenas administradores podem criar novas contas.
         </p>
       </div>
     </div>
