@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { fetchTicket, fetchProfiles, fetchLocalidades, setTechnicianStatus } from "@/lib/data";
+import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus } from "@/lib/data";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,10 @@ function TicketDetail() {
     queryKey: ["localidades"],
     queryFn: fetchLocalidades,
   });
+  const { data: tecnicos = [] } = useQuery({
+    queryKey: ["tecnicos"],
+    queryFn: fetchTecnicos,
+  });
 
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
@@ -79,6 +83,8 @@ function TicketDetail() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [transferring, setTransferring] = useState(false);
+  const [transferTo, setTransferTo] = useState("");
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
@@ -95,6 +101,7 @@ function TicketDetail() {
   const canSchedule = canManage || isAtendente;
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
+  const canTransfer = isAdmin || isAtendente;
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
   const locName = () => {
@@ -268,6 +275,25 @@ function TicketDetail() {
     navigate({ to: "/tickets" });
   };
 
+  const transferir = async () => {
+    if (!user) return;
+    if (!transferTo) return toast.error("Selecione um técnico.");
+    if (transferTo === ticket.tecnico_id)
+      return toast.error("O chamado já está atribuído a este técnico.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ tecnico_id: transferTo })
+      .eq("id", ticket.id);
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado transferido!");
+    setTransferring(false);
+    setTransferTo("");
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/tickets" })}>
@@ -414,6 +440,17 @@ function TicketDetail() {
                   <Trash2 className="h-4 w-4" /> Excluir
                 </Button>
               )}
+              {canTransfer && ticket.status !== "finalizado" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTransferTo(ticket.tecnico_id ?? "");
+                    setTransferring(true);
+                  }}
+                >
+                  <UserIcon className="h-4 w-4" /> Transferir
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -438,6 +475,38 @@ function TicketDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={transferring} onOpenChange={setTransferring}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Técnico responsável</Label>
+            <Select value={transferTo} onValueChange={setTransferTo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um técnico" />
+              </SelectTrigger>
+              <SelectContent>
+                {tecnicos.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferring(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={transferir} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Transferência
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={scheduling} onOpenChange={setScheduling}>
 
