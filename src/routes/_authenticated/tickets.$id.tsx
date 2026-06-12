@@ -234,6 +234,29 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
+  const parcialmenteCompletar = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        status: "pendente_conclusao",
+        tecnico_id: ticket.tecnico_id ?? user.id,
+      })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "pendente_conclusao", note.trim() || undefined);
+      await setTechnicianStatus(user.id, "disponivel", null);
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado marcado como Pendente de Conclusão.");
+    setFinalizing(false);
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
   const excluir = async () => {
     if (!user) return;
     setBusy(true);
