@@ -338,6 +338,7 @@ function Perfil() {
         </div>
       </div>
 
+      {!isSolicitante && (
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Relatórios (Excel)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
