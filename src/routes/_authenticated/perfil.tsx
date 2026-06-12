@@ -21,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 
 function Perfil() {
   const { user, profile, roles, refresh } = useAuth();
+  const isSolicitante = roles.includes("solicitante");
   const qc = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [cargo, setCargo] = useState("");
