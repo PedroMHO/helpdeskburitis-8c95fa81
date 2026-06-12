@@ -138,11 +138,11 @@ function AuthenticatedLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-sidebar-border/60 bg-sidebar/70 text-sidebar-foreground backdrop-blur-2xl backdrop-saturate-150 transition-transform lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-4">
+        <div className="flex items-center gap-2.5 border-b border-sidebar-border/60 px-5 py-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <Headset className="h-5 w-5" />
           </div>
