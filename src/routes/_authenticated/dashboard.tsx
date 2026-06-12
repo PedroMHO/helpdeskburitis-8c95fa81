@@ -144,12 +144,17 @@ function Dashboard() {
         <BrasiliaClock />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className={cn("grid grid-cols-2 gap-4", isSolicitante ? "lg:grid-cols-2" : "lg:grid-cols-4")}>
         <StatCard label="Aberto" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
-        <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
+        {!isSolicitante && (
+          <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
+        )}
         <StatCard label="Finalizados" value={finalizados} icon={CheckCircle2} accent="bg-status-finalizado/15 text-status-finalizado" />
-        <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
+        {!isSolicitante && (
+          <StatCard label="Em Manutenção" value={manutencao} icon={Wrench} accent="bg-priority-alta/15 text-priority-alta" />
+        )}
       </div>
+
 
       {!isSolicitante && <TechnicianStatusPanel />}
 
