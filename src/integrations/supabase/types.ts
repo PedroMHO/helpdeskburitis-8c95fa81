@@ -110,6 +110,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          setor_id: string | null
           updated_at: string
         }
         Insert: {
@@ -119,6 +120,7 @@ export type Database = {
           email?: string
           full_name?: string
           id: string
+          setor_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -128,9 +130,18 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          setor_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       setores: {
         Row: {
@@ -427,6 +438,7 @@ export type Database = {
           id: string
         }[]
       }
+      promote_due_scheduled_tickets: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "tecnico" | "usuario" | "atendente" | "solicitante"
@@ -439,6 +451,7 @@ export type Database = {
         | "em_manutencao"
         | "aguardando_agendamento"
         | "pronto_entrega"
+        | "pendente_conclusao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -576,6 +589,7 @@ export const Constants = {
         "em_manutencao",
         "aguardando_agendamento",
         "pronto_entrega",
+        "pendente_conclusao",
       ],
     },
   },
