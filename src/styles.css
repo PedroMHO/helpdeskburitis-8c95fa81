@@ -77,18 +77,18 @@
   --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
   --background: oklch(0.97 0.004 255);
-  --foreground: oklch(0.2 0.02 260);
+  --foreground: oklch(0.16 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 260);
+  --card-foreground: oklch(0.16 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 260);
+  --popover-foreground: oklch(0.16 0.02 260);
   /* iOS system blue (#007AFF) */
-  --primary: oklch(0.6 0.2 256);
+  --primary: oklch(0.55 0.2 256);
   --primary-foreground: oklch(0.99 0.005 250);
   --secondary: oklch(0.95 0.008 255);
-  --secondary-foreground: oklch(0.32 0.03 260);
+  --secondary-foreground: oklch(0.28 0.03 260);
   --muted: oklch(0.955 0.006 255);
-  --muted-foreground: oklch(0.55 0.02 260);
+  --muted-foreground: oklch(0.44 0.025 260);
   --accent: oklch(0.93 0.025 256);
   --accent-foreground: oklch(0.32 0.06 256);
   --destructive: oklch(0.6 0.21 25);
