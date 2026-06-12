@@ -73,7 +73,7 @@ function BrasiliaClock() {
 }
 
 function Dashboard() {
-  const { profile, user, isSolicitante } = useAuth();
+  const { profile, user, isSolicitante, isTecnico, isAdmin } = useAuth();
   const { data: allTickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
@@ -87,16 +87,23 @@ function Dashboard() {
     queryFn: fetchProfiles,
   });
 
-  // RBAC: solicitante só enxerga métricas dos próprios chamados.
-  const tickets = useMemo(
-    () =>
-      isSolicitante
-        ? allTickets.filter(
-            (t) => t.created_by === user?.id || t.solicitante_id === user?.id,
-          )
-        : allTickets,
-    [allTickets, isSolicitante, user?.id],
-  );
+  // RBAC dashboard:
+  // - solicitante só enxerga métricas dos próprios chamados.
+  // - técnico (não-admin) não enxerga chamados já assumidos por OUTRO técnico.
+  const tickets = useMemo(() => {
+    if (isSolicitante) {
+      return allTickets.filter(
+        (t) => t.created_by === user?.id || t.solicitante_id === user?.id,
+      );
+    }
+    if (isTecnico && !isAdmin) {
+      return allTickets.filter(
+        (t) => !t.tecnico_id || t.tecnico_id === user?.id,
+      );
+    }
+    return allTickets;
+  }, [allTickets, isSolicitante, isTecnico, isAdmin, user?.id]);
+
 
   const setorNome = (id: string | null) =>
     id ? localidades?.setores.find((s) => s.id === id)?.nome ?? null : null;
