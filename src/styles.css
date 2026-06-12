@@ -226,4 +226,39 @@ main {
   backdrop-filter: blur(12px) saturate(160%);
 }
 
+/*
+ * Modo legível (acessibilidade): reduz o desfoque e aumenta o contraste
+ * do texto sobre o fundo. Ativado pela classe .readable-mode no <html>.
+ */
+.readable-mode body::before {
+  filter: blur(4px) brightness(0.7);
+}
+
+.readable-mode .glass-card {
+  background-color: color-mix(in oklab, var(--card) 92%, transparent);
+  backdrop-filter: blur(8px) saturate(120%);
+  border-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+}
+
+.readable-mode.dark .glass-card,
+.readable-mode .dark .glass-card {
+  background-color: color-mix(in oklab, var(--card) 94%, transparent);
+}
+
+.readable-mode .pill {
+  background-color: color-mix(in oklab, var(--muted) 95%, transparent);
+  backdrop-filter: none;
+}
+
+/* Texto mais forte e maior peso para legibilidade. */
+.readable-mode .text-muted-foreground {
+  color: var(--foreground);
+}
+
+.readable-mode header {
+  background-color: color-mix(in oklab, var(--card) 92%, transparent) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+
 
