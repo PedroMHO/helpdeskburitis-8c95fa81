@@ -173,7 +173,7 @@ function NovoChamado() {
             Descreva o motivo e identifique-se.
           </p>
         </div>
-        <form onSubmit={submitSolicitante} className="space-y-5 rounded-xl border bg-card p-6 shadow-sm">
+        <form onSubmit={submitSolicitante} className="space-y-5 rounded-xl glass-card p-6 shadow-sm">
           <div className="space-y-2">
             <Label htmlFor="motivo">Motivo da abertura do chamado *</Label>
             <Textarea
@@ -219,7 +219,7 @@ function NovoChamado() {
         </p>
       </div>
 
-      <form onSubmit={submit} className="space-y-5 rounded-xl border bg-card p-6 shadow-sm">
+      <form onSubmit={submit} className="space-y-5 rounded-xl glass-card p-6 shadow-sm">
         <div className="space-y-2">
           <Label htmlFor="titulo">Título *</Label>
           <Input id="titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={140} required />

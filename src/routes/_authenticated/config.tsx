@@ -117,7 +117,7 @@ function Config() {
       </div>
 
       {/* Cidades */}
-      <section className="rounded-xl border bg-card p-5 shadow-sm">
+      <section className="rounded-xl glass-card p-5 shadow-sm">
         <h2 className="mb-3 font-semibold text-foreground">Cidades</h2>
         <div className="flex gap-2">
           <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" />
@@ -136,7 +136,7 @@ function Config() {
       </section>
 
       {/* Bairros */}
-      <section className="rounded-xl border bg-card p-5 shadow-sm">
+      <section className="rounded-xl glass-card p-5 shadow-sm">
         <h2 className="mb-3 font-semibold text-foreground">Bairros</h2>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Ex: Centro" />
@@ -163,7 +163,7 @@ function Config() {
       </section>
 
       {/* Setores */}
-      <section className="rounded-xl border bg-card p-5 shadow-sm">
+      <section className="rounded-xl glass-card p-5 shadow-sm">
         <h2 className="mb-3 font-semibold text-foreground">Setores</h2>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Ex: Setor de TI" />
@@ -190,7 +190,7 @@ function Config() {
       </section>
 
       {/* Solicitantes */}
-      <section className="rounded-xl border bg-card p-5 shadow-sm">
+      <section className="rounded-xl glass-card p-5 shadow-sm">
         <h2 className="mb-3 font-semibold text-foreground">Solicitantes</h2>
         <p className="mb-3 text-sm text-muted-foreground">
           Cadastre nomes de solicitantes vinculados a um setor. Eles ficam disponíveis
