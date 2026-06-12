@@ -3,7 +3,16 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Polling silencioso de 30s (item 14) para manter listas,
+        // quadro de técnicos e gráficos atualizados em segundo plano.
+        refetchInterval: 30_000,
+        refetchOnWindowFocus: true,
+      },
+    },
+  });
 
   const router = createRouter({
     routeTree,
