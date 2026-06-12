@@ -440,6 +440,17 @@ function TicketDetail() {
                   <Trash2 className="h-4 w-4" /> Excluir
                 </Button>
               )}
+              {canTransfer && ticket.status !== "finalizado" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTransferTo(ticket.tecnico_id ?? "");
+                    setTransferring(true);
+                  }}
+                >
+                  <UserIcon className="h-4 w-4" /> Transferir
+                </Button>
+              )}
             </div>
           </div>
         )}
