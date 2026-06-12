@@ -68,29 +68,34 @@
   --color-status-aguardando: var(--status-aguardando);
   --color-status-atendimento: var(--status-atendimento);
   --color-status-finalizado: var(--status-finalizado);
+  --font-sans: var(--font-system);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0.005 240);
-  --foreground: oklch(0.21 0.03 250);
+  /* iOS 26 — raios mais generosos (Liquid Glass) */
+  --radius: 1.1rem;
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --background: oklch(0.97 0.004 255);
+  --foreground: oklch(0.2 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.03 250);
+  --card-foreground: oklch(0.2 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 250);
-  --primary: oklch(0.52 0.16 250);
+  --popover-foreground: oklch(0.2 0.02 260);
+  /* iOS system blue (#007AFF) */
+  --primary: oklch(0.6 0.2 256);
   --primary-foreground: oklch(0.99 0.005 250);
-  --secondary: oklch(0.95 0.02 250);
-  --secondary-foreground: oklch(0.3 0.05 250);
-  --muted: oklch(0.96 0.01 250);
-  --muted-foreground: oklch(0.55 0.03 250);
-  --accent: oklch(0.93 0.04 250);
-  --accent-foreground: oklch(0.3 0.08 250);
-  --destructive: oklch(0.58 0.22 25);
+  --secondary: oklch(0.95 0.008 255);
+  --secondary-foreground: oklch(0.32 0.03 260);
+  --muted: oklch(0.955 0.006 255);
+  --muted-foreground: oklch(0.55 0.02 260);
+  --accent: oklch(0.93 0.025 256);
+  --accent-foreground: oklch(0.32 0.06 256);
+  --destructive: oklch(0.6 0.21 25);
   --destructive-foreground: oklch(0.99 0.005 250);
-  --border: oklch(0.9 0.015 250);
-  --input: oklch(0.9 0.015 250);
-  --ring: oklch(0.52 0.16 250);
+  --border: oklch(0.9 0.008 255 / 70%);
+  --input: oklch(0.9 0.01 255);
+  --ring: oklch(0.6 0.2 256);
 
   --priority-baixa: oklch(0.7 0.17 145);
   --priority-baixa-foreground: oklch(0.99 0 0);
@@ -125,8 +130,8 @@
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.62 0.2 256);
+  --primary-foreground: oklch(0.99 0.005 250);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
@@ -161,21 +166,35 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-system);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
   }
 }
 
-/* Fundo com a logo oficial desfocada (item 17). */
+/* iOS 26 — fundo com gradientes suaves tipo "wallpaper" + logo desfocada. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
-  background-image: url("./assets/bg-logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: min(60vw, 640px);
-  opacity: 0.06;
-  filter: blur(6px);
+  background-image:
+    radial-gradient(
+      55rem 55rem at 12% -10%,
+      color-mix(in oklab, var(--primary) 22%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      50rem 50rem at 110% 10%,
+      color-mix(in oklab, oklch(0.7 0.18 320) 20%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      55rem 55rem at 90% 120%,
+      color-mix(in oklab, oklch(0.75 0.16 200) 18%, transparent),
+      transparent 60%
+    );
   pointer-events: none;
 }
 
@@ -185,21 +204,34 @@ main {
   z-index: 1;
 }
 
-/* Janelas flutuantes / glassmorphism (item 17). */
+/* Liquid Glass (iOS 26) — vidro translúcido com brilho e profundidade. */
 .glass-card {
-  background-color: color-mix(in oklab, var(--card) 85%, transparent);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.18);
+  background-color: color-mix(in oklab, var(--card) 62%, transparent);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
+  border-radius: 22px;
+  box-shadow:
+    0 8px 32px -12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 0 color-mix(in oklab, white 45%, transparent);
 }
 
-/* Metadados em formato pílula/ovalado (item 17). */
+.dark .glass-card {
+  background-color: color-mix(in oklab, var(--card) 55%, transparent);
+  border-color: color-mix(in oklab, white 10%, transparent);
+  box-shadow:
+    0 8px 32px -12px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 0 color-mix(in oklab, white 12%, transparent);
+}
+
+/* Metadados em formato pílula/ovalado, com leve vidro (iOS 26). */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   border-radius: 9999px;
   padding: 0.25rem 0.75rem;
-  background-color: color-mix(in oklab, var(--muted) 70%, transparent);
+  background-color: color-mix(in oklab, var(--muted) 60%, transparent);
+  backdrop-filter: blur(12px) saturate(160%);
 }
+
 
