@@ -121,6 +121,12 @@ function Usuarios() {
     queryFn: fetchUsers,
     enabled: isAdmin,
   });
+  const { data: loc } = useQuery({
+    queryKey: ["localidades"],
+    queryFn: fetchLocalidades,
+    enabled: isAdmin,
+  });
+
 
   const createUser = useServerFn(createUserAccount);
   const deleteUser = useServerFn(deleteUserAccount);
