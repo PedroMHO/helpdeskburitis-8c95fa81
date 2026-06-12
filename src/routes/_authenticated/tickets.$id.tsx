@@ -83,6 +83,8 @@ function TicketDetail() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [transferring, setTransferring] = useState(false);
+  const [transferTo, setTransferTo] = useState("");
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
