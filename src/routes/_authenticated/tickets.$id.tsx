@@ -77,6 +77,7 @@ function TicketDetail() {
 
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
+  const [quickFinalizing, setQuickFinalizing] = useState(false);
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -85,6 +86,7 @@ function TicketDetail() {
   const [deleting, setDeleting] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [transferTo, setTransferTo] = useState("");
+
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
