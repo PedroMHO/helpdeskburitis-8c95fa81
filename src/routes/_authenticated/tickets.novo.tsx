@@ -255,12 +255,15 @@ function NovoChamado() {
 
         <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
           <Label>Status inicial</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              variant={agendado ? "outline" : "default"}
+              variant={!agendado && !semData ? "default" : "outline"}
               size="sm"
-              onClick={() => setAgendado(false)}
+              onClick={() => {
+                setAgendado(false);
+                setSemData(false);
+              }}
             >
               Aguardando
             </Button>
@@ -268,9 +271,24 @@ function NovoChamado() {
               type="button"
               variant={agendado ? "default" : "outline"}
               size="sm"
-              onClick={() => setAgendado(true)}
+              onClick={() => {
+                setAgendado(true);
+                setSemData(false);
+              }}
             >
               Agendado
+            </Button>
+            <Button
+              type="button"
+              variant={semData ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setSemData(true);
+                setAgendado(false);
+                setScheduledAt("");
+              }}
+            >
+              (Sem data)
             </Button>
           </div>
           {agendado && (
@@ -287,6 +305,12 @@ function NovoChamado() {
               </p>
             </div>
           )}
+          {semData && (
+            <p className="text-xs text-muted-foreground">
+              O chamado será salvo sem data de agendamento definida.
+            </p>
+          )}
+
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
