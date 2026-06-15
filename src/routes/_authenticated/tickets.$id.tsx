@@ -378,7 +378,7 @@ function TicketDetail() {
 
         {(canSchedule || (isOwner && ticket.status !== "finalizado") || canDelete) && (
           <div className="mt-6 space-y-4 border-t pt-4">
-            {canManage && ticket.status !== "finalizado" && (
+            {isAdmin && ticket.status !== "finalizado" && (
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Alterar status</Label>
@@ -417,6 +417,7 @@ function TicketDetail() {
                 </div>
               </div>
             )}
+
             <div className="flex flex-wrap gap-2">
               {canManage &&
                 (ticket.status === "aguardando" ||
