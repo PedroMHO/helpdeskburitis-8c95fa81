@@ -323,6 +323,12 @@ function TicketDetail() {
             <Wrench className="h-4 w-4" /> Técnico:{" "}
             <span className="text-foreground">{name(ticket.tecnico_id)}</span>
           </div>
+          {ticket.solicitante_nome && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <UserIcon className="h-4 w-4" /> Solicitante do Setor:{" "}
+              <span className="text-foreground">{ticket.solicitante_nome}</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="h-4 w-4" /> Localidade:{" "}
             <span className="text-foreground">{locName()}</span>
