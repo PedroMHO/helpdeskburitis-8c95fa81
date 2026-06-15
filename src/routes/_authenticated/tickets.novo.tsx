@@ -43,7 +43,9 @@ function NovoChamado() {
   const [descricao, setDescricao] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [agendado, setAgendado] = useState(false);
+  const [semData, setSemData] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
+
   const [cidadeId, setCidadeId] = useState<string>("");
   const [bairroId, setBairroId] = useState<string>("");
   const [setorId, setSetorId] = useState<string>("");
