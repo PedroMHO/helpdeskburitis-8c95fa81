@@ -43,7 +43,9 @@ function NovoChamado() {
   const [descricao, setDescricao] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [agendado, setAgendado] = useState(false);
+  const [semData, setSemData] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
+
   const [cidadeId, setCidadeId] = useState<string>("");
   const [bairroId, setBairroId] = useState<string>("");
   const [setorId, setSetorId] = useState<string>("");
@@ -143,11 +145,16 @@ function NovoChamado() {
     const solName = solicitanteRef
       ? solicitantes.find((s) => s.id === solicitanteRef)?.nome ?? null
       : null;
+    const status = agendado
+      ? "agendado"
+      : semData
+        ? "aguardando_agendamento"
+        : "aguardando";
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
       descricao: descricao.trim(),
       priority,
-      status: agendado ? "agendado" : "aguardando",
+      status,
       scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       solicitante_id: user.id,
       solicitante_ref: solicitanteRef || null,
@@ -157,6 +164,7 @@ function NovoChamado() {
       bairro_id: bairroId || null,
       setor_id: setorId || null,
     });
+
     setBusy(false);
     if (error) return toast.error("Erro ao abrir chamado", { description: error.message });
     toast.success("Chamado aberto com sucesso!");
@@ -247,12 +255,15 @@ function NovoChamado() {
 
         <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
           <Label>Status inicial</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              variant={agendado ? "outline" : "default"}
+              variant={!agendado && !semData ? "default" : "outline"}
               size="sm"
-              onClick={() => setAgendado(false)}
+              onClick={() => {
+                setAgendado(false);
+                setSemData(false);
+              }}
             >
               Aguardando
             </Button>
@@ -260,9 +271,24 @@ function NovoChamado() {
               type="button"
               variant={agendado ? "default" : "outline"}
               size="sm"
-              onClick={() => setAgendado(true)}
+              onClick={() => {
+                setAgendado(true);
+                setSemData(false);
+              }}
             >
               Agendado
+            </Button>
+            <Button
+              type="button"
+              variant={semData ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setSemData(true);
+                setAgendado(false);
+                setScheduledAt("");
+              }}
+            >
+              (Sem data)
             </Button>
           </div>
           {agendado && (
@@ -279,6 +305,12 @@ function NovoChamado() {
               </p>
             </div>
           )}
+          {semData && (
+            <p className="text-xs text-muted-foreground">
+              O chamado será salvo sem data de agendamento definida.
+            </p>
+          )}
+
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">

@@ -77,6 +77,7 @@ function TicketDetail() {
 
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
+  const [quickFinalizing, setQuickFinalizing] = useState(false);
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -85,6 +86,7 @@ function TicketDetail() {
   const [deleting, setDeleting] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [transferTo, setTransferTo] = useState("");
+
 
   useEffect(() => {
     if (ticket?.closing_image_url) {
@@ -102,6 +104,9 @@ function TicketDetail() {
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
   const canTransfer = isAdmin || isAtendente;
+  const showStatusButtons = isTecnico || isAtendente;
+  const canFinalizarRapido = isAdmin || isAtendente;
+
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
   const locName = () => {
@@ -264,6 +269,36 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
+  const finalizarRapido = async () => {
+    if (!user) return;
+    if (!note.trim())
+      return toast.error("A descrição/conclusão é obrigatória.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        status: "finalizado",
+        closing_note: note.trim(),
+        closed_at: new Date().toISOString(),
+        closed_by: user.id,
+        tecnico_id: ticket.tecnico_id ?? user.id,
+      })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "finalizado", note.trim());
+      if (ticket.tecnico_id) await setTechnicianStatus(ticket.tecnico_id, "disponivel", null);
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado finalizado!");
+    setQuickFinalizing(false);
+    setNote("");
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
+
   const excluir = async () => {
     if (!user) return;
     setBusy(true);
@@ -378,7 +413,7 @@ function TicketDetail() {
 
         {(canSchedule || (isOwner && ticket.status !== "finalizado") || canDelete) && (
           <div className="mt-6 space-y-4 border-t pt-4">
-            {canManage && ticket.status !== "finalizado" && (
+            {isAdmin && ticket.status !== "finalizado" && (
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Alterar status</Label>
@@ -417,6 +452,7 @@ function TicketDetail() {
                 </div>
               </div>
             )}
+
             <div className="flex flex-wrap gap-2">
               {canManage &&
                 (ticket.status === "aguardando" ||
@@ -425,6 +461,28 @@ function TicketDetail() {
                   <Button onClick={assumir} disabled={busy}>
                     {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                     <Wrench className="h-4 w-4" /> Iniciar
+                  </Button>
+                )}
+              {showStatusButtons &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "em_manutencao" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => mudarStatus("em_manutencao")}
+                    disabled={busy}
+                  >
+                    <Wrench className="h-4 w-4" /> (Reparo)
+                  </Button>
+                )}
+              {showStatusButtons &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "pronto_entrega" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => mudarStatus("pronto_entrega")}
+                    disabled={busy}
+                  >
+                    <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
                   </Button>
                 )}
               {canSchedule && ticket.status !== "finalizado" && (
@@ -437,6 +495,16 @@ function TicketDetail() {
                   <CheckCircle2 className="h-4 w-4" /> Dar Baixa
                 </Button>
               )}
+              {canFinalizarRapido && ticket.status !== "finalizado" && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setQuickFinalizing(true)}
+                  disabled={busy}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Finalizar Chamado
+                </Button>
+              )}
+
               {canDelete && (
                 <Button
                   variant="destructive"
@@ -587,6 +655,38 @@ function TicketDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={quickFinalizing} onOpenChange={setQuickFinalizing}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finalizar Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="quick-note">Descrição / conclusão *</Label>
+            <Textarea
+              id="quick-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={4}
+              placeholder="Descreva a conclusão do chamado..."
+              maxLength={2000}
+            />
+            <p className="text-xs text-muted-foreground">
+              Não é necessário anexar imagem para finalizar por aqui.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickFinalizing(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={finalizarRapido} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Finalização
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
