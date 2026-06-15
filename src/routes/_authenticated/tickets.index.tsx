@@ -76,9 +76,13 @@ function TicketsList() {
   const filtered = useMemo(
     () =>
       tickets.filter((t) => {
-        // Lista geral mostra apenas chamados em aberto reais.
+        // Lista geral mostra chamados em aberto, em atendimento e prontos para entrega.
         // Agendados e Em Manutenção têm abas próprias.
-        if (t.status !== "aguardando" && t.status !== "em_atendimento")
+        if (
+          t.status !== "aguardando" &&
+          t.status !== "em_atendimento" &&
+          t.status !== "pronto_entrega"
+        )
           return false;
         // Técnico: apenas não atribuídos + atribuídos a ele mesmo.
         // Admin e Atendente veem todos.
@@ -127,7 +131,9 @@ function TicketsList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            {(["aguardando", "em_atendimento"] as TicketStatus[]).map((s) => (
+            {(
+              ["aguardando", "em_atendimento", "pronto_entrega"] as TicketStatus[]
+            ).map((s) => (
               <SelectItem key={s} value={s}>
                 {STATUS_LABEL[s]}
               </SelectItem>
