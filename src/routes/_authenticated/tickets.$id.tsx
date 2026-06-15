@@ -269,6 +269,36 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["technician-status"] });
   };
 
+  const finalizarRapido = async () => {
+    if (!user) return;
+    if (!note.trim())
+      return toast.error("A descrição/conclusão é obrigatória.");
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        status: "finalizado",
+        closing_note: note.trim(),
+        closed_at: new Date().toISOString(),
+        closed_by: user.id,
+        tecnico_id: ticket.tecnico_id ?? user.id,
+      })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "finalizado", note.trim());
+      if (ticket.tecnico_id) await setTechnicianStatus(ticket.tecnico_id, "disponivel", null);
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado finalizado!");
+    setQuickFinalizing(false);
+    setNote("");
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
+
   const excluir = async () => {
     if (!user) return;
     setBusy(true);
