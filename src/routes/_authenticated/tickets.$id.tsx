@@ -655,6 +655,38 @@ function TicketDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={quickFinalizing} onOpenChange={setQuickFinalizing}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finalizar Chamado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="quick-note">Descrição / conclusão *</Label>
+            <Textarea
+              id="quick-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={4}
+              placeholder="Descreva a conclusão do chamado..."
+              maxLength={2000}
+            />
+            <p className="text-xs text-muted-foreground">
+              Não é necessário anexar imagem para finalizar por aqui.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickFinalizing(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={finalizarRapido} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Confirmar Finalização
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
