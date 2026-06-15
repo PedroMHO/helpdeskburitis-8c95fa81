@@ -428,6 +428,28 @@ function TicketDetail() {
                     <Wrench className="h-4 w-4" /> Iniciar
                   </Button>
                 )}
+              {showStatusButtons &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "em_manutencao" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => mudarStatus("em_manutencao")}
+                    disabled={busy}
+                  >
+                    <Wrench className="h-4 w-4" /> (Reparo)
+                  </Button>
+                )}
+              {showStatusButtons &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "pronto_entrega" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => mudarStatus("pronto_entrega")}
+                    disabled={busy}
+                  >
+                    <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
+                  </Button>
+                )}
               {canSchedule && ticket.status !== "finalizado" && (
                 <Button variant="outline" onClick={() => setScheduling(true)}>
                   <Calendar className="h-4 w-4" /> Agendar
@@ -438,6 +460,16 @@ function TicketDetail() {
                   <CheckCircle2 className="h-4 w-4" /> Dar Baixa
                 </Button>
               )}
+              {canFinalizarRapido && ticket.status !== "finalizado" && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setQuickFinalizing(true)}
+                  disabled={busy}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Finalizar Chamado
+                </Button>
+              )}
+
               {canDelete && (
                 <Button
                   variant="destructive"
