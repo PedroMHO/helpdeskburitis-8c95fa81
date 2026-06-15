@@ -145,11 +145,16 @@ function NovoChamado() {
     const solName = solicitanteRef
       ? solicitantes.find((s) => s.id === solicitanteRef)?.nome ?? null
       : null;
+    const status = agendado
+      ? "agendado"
+      : semData
+        ? "aguardando_agendamento"
+        : "aguardando";
     const { error } = await supabase.from("tickets").insert({
       titulo: titulo.trim(),
       descricao: descricao.trim(),
       priority,
-      status: agendado ? "agendado" : "aguardando",
+      status,
       scheduled_at: agendado ? new Date(scheduledAt).toISOString() : null,
       solicitante_id: user.id,
       solicitante_ref: solicitanteRef || null,
@@ -159,6 +164,7 @@ function NovoChamado() {
       bairro_id: bairroId || null,
       setor_id: setorId || null,
     });
+
     setBusy(false);
     if (error) return toast.error("Erro ao abrir chamado", { description: error.message });
     toast.success("Chamado aberto com sucesso!");
