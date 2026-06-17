@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+.env.local
+deploy
+*.log
+.vscode
+.idea
+dist
+.output
+*.md
+!deploy/README.md
