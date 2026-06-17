@@ -20,6 +20,7 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
 ENV VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID
 
+# O preset node-server em vite.config.ts gera o servidor Node em .output/
 RUN bun run build
 
 # ---- Runtime stage ----
@@ -28,7 +29,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copia a saída de build do Nitro/TanStack Start
+# Copia a saída de build do Nitro (preset node-server)
 COPY --from=build /app/.output ./.output
 
 EXPOSE 3000
