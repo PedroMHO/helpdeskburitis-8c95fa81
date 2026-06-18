@@ -83,7 +83,7 @@ function Agendados() {
     () =>
       tickets.filter(
         (t) =>
-          t.status === "agendado" &&
+          (t.status === "agendado" || t.status === "aguardando_agendamento") &&
           (!q || t.titulo.toLowerCase().includes(q.toLowerCase())),
       ),
     [tickets, q],
