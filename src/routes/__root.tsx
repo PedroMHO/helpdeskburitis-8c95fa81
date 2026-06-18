@@ -79,21 +79,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Chamados TI Buritis" },
+      { title: "HelpDesk Buritis" },
       {
         name: "description",
         content:
           "Sistema corporativo de helpdesk para abertura e gestão de chamados de informática.",
       },
       { name: "author", content: "Informática Buritis" },
-      { property: "og:title", content: "Chamados TI Buritis" },
+      { property: "og:title", content: "HelpDesk Buritis" },
       {
         property: "og:description",
         content: "Sistema corporativo de helpdesk de chamados de informática.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Chamados TI Buritis" },
+      { name: "twitter:title", content: "HelpDesk Buritis" },
       { name: "description", content: "HelpDesk Buritis is a corporate helpdesk app for managing IT support requests." },
       { property: "og:description", content: "HelpDesk Buritis is a corporate helpdesk app for managing IT support requests." },
       { name: "twitter:description", content: "HelpDesk Buritis is a corporate helpdesk app for managing IT support requests." },
