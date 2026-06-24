@@ -5,6 +5,7 @@
 
 SET statement_timeout = 0;
 SET client_min_messages = warning;
+SET search_path = public;
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ===== ENUM TYPES =====
