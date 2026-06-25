@@ -46,6 +46,37 @@ export const createUserAccount = createServerFn({ method: "POST" })
     return { id: newUserId };
   });
 
+const updateRoleSchema = z.object({
+  user_id: z.string().uuid(),
+  role: z.enum(["usuario", "tecnico", "admin", "atendente", "solicitante"]),
+});
+
+export const updateUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => updateRoleSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Apenas administradores podem alterar permissões.");
+    if (data.user_id === userId)
+      throw new Error("Você não pode alterar a sua própria permissão.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    const { error: insErr } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: data.user_id, role: data.role });
+    if (insErr) throw new Error(insErr.message);
+
+    return { id: data.user_id, role: data.role };
+  });
+
 const deleteUserSchema = z.object({
   user_id: z.string().uuid(),
 });
