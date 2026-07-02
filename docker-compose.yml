@@ -1,0 +1,61 @@
+# ============================================================
+# docker-compose.yml — HelpDesk Buritis
+# ------------------------------------------------------------
+# Sobe a aplicação (SSR Node) e, opcionalmente, um PostgreSQL
+# local já inicializado com o schema.sql do projeto.
+#
+# Uso:
+#   1. cp .env.example .env   e ajuste os valores
+#   2. docker compose up -d --build
+#
+# O backend real (auth/storage/DB) roda no Supabase. Para um
+# clone 100% self-hosted, use o serviço `db` abaixo (PostgreSQL
+# puro) ou uma instância local do Supabase (https://supabase.com/docs/guides/self-hosting).
+# ============================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
+    image: helpdesk-buritis:latest
+    container_name: helpdesk-buritis-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Variáveis de servidor (SSR / server functions)
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    # depends_on:
+    #   - db   # descomente se for usar o PostgreSQL local abaixo
+
+  # ----------------------------------------------------------
+  # PostgreSQL local (opcional) — recria o schema automaticamente.
+  # Descomente este bloco para hospedar o banco na própria VPS.
+  # Observação: isto cria apenas o schema `public`. Auth e Storage
+  # do Supabase exigem uma instância self-hosted completa do Supabase.
+  # ----------------------------------------------------------
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: helpdesk-buritis-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  #     POSTGRES_DB: ${POSTGRES_DB:-helpdesk}
+  #   ports:
+  #     - "${DB_PORT:-5432}:5432"
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #     - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+
+# volumes:
+#   db_data:
