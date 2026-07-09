@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DbTransferPanel } from "@/components/DbTransferPanel";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Painel de Administração — HelpDesk Buritis" }] }),
@@ -295,6 +296,10 @@ function AdminPanel() {
           </Button>
         </div>
       </form>
+
+      <DbTransferPanel />
+
+
 
       <section className="rounded-xl glass-card p-2 shadow-sm sm:p-4">
         <h2 className="px-2 pb-2 pt-1 text-sm font-semibold text-foreground">
