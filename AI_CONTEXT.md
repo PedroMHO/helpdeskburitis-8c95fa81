@@ -96,12 +96,26 @@ psql "$DATABASE_URL" -f schema.sql
 
 ### Funções e automações relevantes
 - `handle_new_user()` — cria profile ao registrar; 1º usuário vira `admin`.
-- `technicians_directory()` / `profiles_directory()` — diretórios seguros (sem expor e-mails).
+- `has_role(uuid, app_role)` — checagem de cargo (RPC exposta a `authenticated`).
+- `technicians_directory()` / `profiles_directory()` — diretórios seguros (sem expor e-mails), RPCs expostas a `authenticated`.
 - `handle_ticket_status_side_effects()` — libera técnico ao sair de atendimento.
 - `promote_due_scheduled_tickets()` — pg_cron: promove chamados agendados no dia.
 - `send_scheduled_reminders()` — lembrete 24h antes do agendamento.
 - `notify_team()` / `notify_ticket_changes()` — geram notificações.
 - `enforce_solicitante_rate_limit()` — 1 chamado / 30 min para solicitantes.
+
+> **EXECUTE (segurança):** todas as funções SECURITY DEFINER internas/trigger/cron
+> (`handle_new_user`, `set_updated_at`, `notify_ticket_changes`,
+> `enforce_solicitante_rate_limit`, `handle_ticket_status_side_effects`,
+> `promote_due_scheduled_tickets`, `send_scheduled_reminders`, `notify_team`)
+> tiveram `EXECUTE` **revogado** de `PUBLIC`/`anon`/`authenticated`. Apenas
+> `has_role`, `profiles_directory` e `technicians_directory` continuam com
+> `EXECUTE` para `authenticated` (são RPCs chamadas pelo app). Mantenha isso ao
+> recriar o schema.
+
+### Storage
+- Bucket **`ticket-proofs`** — imagens de comprovação/encerramento dos chamados.
+  Referenciado por `closing_image_url` (caminho relativo dentro do bucket).
 
 ---
 
