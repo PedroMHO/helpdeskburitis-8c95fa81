@@ -196,10 +196,42 @@ psql "$DATABASE_URL" -f schema.sql
 | `/_authenticated/historico`       | Autenticado               | Histórico                       |
 | `/_authenticated/perfil`          | Autenticado               | Perfil + exportação Excel       |
 | `/_authenticated/usuarios`,`/config` | Admin/Atendente        | Gestão de usuários e setores    |
-| `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (CRUD usuários)  |
+| `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (ver seção 8.1)  |
+| `/_authenticated/lancamentos`     | Autenticado               | Lançamentos em massa            |
 
 Rotas sob `_authenticated/` são protegidas pelo gate em
 `src/routes/_authenticated/route.tsx` (redireciona para `/auth` sem sessão).
+O componente do `/admin` faz uma checagem extra: se `!isAdmin`, redireciona para
+`/dashboard` (defesa em profundidade — a autorização real está no servidor).
+
+### 8.1 Painel de Administração (`/_authenticated/admin`)
+
+Painel isolado, **acessível apenas por admin**. Componente em
+`src/routes/_authenticated/admin.tsx`. Recursos:
+
+1. **Gestão de usuários (CRUD)** — via `src/lib/admin-users.functions.ts`
+   (todas com `requireSupabaseAuth` + checagem `has_role(admin)`):
+   - `createUserAccount` — cria usuário no Auth (`supabaseAdmin.auth.admin.createUser`)
+     e grava o cargo em `user_roles`.
+   - `updateUserRole` — troca o cargo (não permite alterar o próprio).
+   - `deleteUserAccount` — remove a conta (não permite excluir a si mesmo).
+   - A listagem lê `profiles` + `user_roles` no cliente (RLS aplicada).
+   - Cargos disponíveis: `admin | tecnico | atendente | usuario | solicitante`.
+
+2. **Relançamento de Banco de Dados** — componente `src/components/DbTransferPanel.tsx`
+   (usa `JSZip`) + server fns em `src/lib/db-transfer.functions.ts`
+   (admin-only via `assertAdmin`):
+   - **Exportar** (`exportTicketsData`): baixa um `.zip` com `chamados.json`
+     (chamados finalizados + histórico completo) e pasta `imagens/` (fotos de
+     encerramento via signed URLs temporárias do bucket `ticket-proofs`).
+   - **Importar** (`importTicket`): lê o `.zip`, recria cada chamado (título,
+     descrição, resolução, status, histórico) e re-faz o upload das imagens no
+     bucket `ticket-proofs`. Referências a pessoas ausentes usam o admin
+     importador como fallback → funciona entre projetos Supabase distintos.
+
+> Requer `JSZip` no `package.json` (dependência do frontend). As server fns usam
+> `supabaseAdmin` (service role) — garanta `SUPABASE_SERVICE_ROLE_KEY` no
+> ambiente do servidor e o bucket `ticket-proofs` criado no destino.
 
 ---
 
