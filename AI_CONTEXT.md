@@ -96,12 +96,26 @@ psql "$DATABASE_URL" -f schema.sql
 
 ### Funções e automações relevantes
 - `handle_new_user()` — cria profile ao registrar; 1º usuário vira `admin`.
-- `technicians_directory()` / `profiles_directory()` — diretórios seguros (sem expor e-mails).
+- `has_role(uuid, app_role)` — checagem de cargo (RPC exposta a `authenticated`).
+- `technicians_directory()` / `profiles_directory()` — diretórios seguros (sem expor e-mails), RPCs expostas a `authenticated`.
 - `handle_ticket_status_side_effects()` — libera técnico ao sair de atendimento.
 - `promote_due_scheduled_tickets()` — pg_cron: promove chamados agendados no dia.
 - `send_scheduled_reminders()` — lembrete 24h antes do agendamento.
 - `notify_team()` / `notify_ticket_changes()` — geram notificações.
 - `enforce_solicitante_rate_limit()` — 1 chamado / 30 min para solicitantes.
+
+> **EXECUTE (segurança):** todas as funções SECURITY DEFINER internas/trigger/cron
+> (`handle_new_user`, `set_updated_at`, `notify_ticket_changes`,
+> `enforce_solicitante_rate_limit`, `handle_ticket_status_side_effects`,
+> `promote_due_scheduled_tickets`, `send_scheduled_reminders`, `notify_team`)
+> tiveram `EXECUTE` **revogado** de `PUBLIC`/`anon`/`authenticated`. Apenas
+> `has_role`, `profiles_directory` e `technicians_directory` continuam com
+> `EXECUTE` para `authenticated` (são RPCs chamadas pelo app). Mantenha isso ao
+> recriar o schema.
+
+### Storage
+- Bucket **`ticket-proofs`** — imagens de comprovação/encerramento dos chamados.
+  Referenciado por `closing_image_url` (caminho relativo dentro do bucket).
 
 ---
 
@@ -111,8 +125,13 @@ psql "$DATABASE_URL" -f schema.sql
 - Cargos SEMPRE via `user_roles` + `has_role()` (evita escalonamento de privilégio).
 - **Nunca** cheque cargo por localStorage/hardcode no cliente.
 - Server functions privilegiadas verificam o cargo do chamador antes de usar
-  `supabaseAdmin` (service role). Ver `src/lib/admin-users.functions.ts`.
+  `supabaseAdmin` (service role). Ver `src/lib/admin-users.functions.ts` e
+  `src/lib/db-transfer.functions.ts` (ambas chamam `assertAdmin`/`has_role`).
 - Cadastro público desabilitado (login somente).
+- **RLS de `tickets`:** a política `tickets_update` tem `WITH CHECK` restritivo —
+  solicitantes só editam o próprio chamado sem alterar `status`/técnico
+  (impede auto-encerramento, reatribuição e escalonamento de prioridade).
+  Cargos de staff e o técnico designado mantêm edição completa. Preserve isso.
 
 ---
 
@@ -177,10 +196,42 @@ psql "$DATABASE_URL" -f schema.sql
 | `/_authenticated/historico`       | Autenticado               | Histórico                       |
 | `/_authenticated/perfil`          | Autenticado               | Perfil + exportação Excel       |
 | `/_authenticated/usuarios`,`/config` | Admin/Atendente        | Gestão de usuários e setores    |
-| `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (CRUD usuários)  |
+| `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (ver seção 8.1)  |
+| `/_authenticated/lancamentos`     | Autenticado               | Lançamentos em massa            |
 
 Rotas sob `_authenticated/` são protegidas pelo gate em
 `src/routes/_authenticated/route.tsx` (redireciona para `/auth` sem sessão).
+O componente do `/admin` faz uma checagem extra: se `!isAdmin`, redireciona para
+`/dashboard` (defesa em profundidade — a autorização real está no servidor).
+
+### 8.1 Painel de Administração (`/_authenticated/admin`)
+
+Painel isolado, **acessível apenas por admin**. Componente em
+`src/routes/_authenticated/admin.tsx`. Recursos:
+
+1. **Gestão de usuários (CRUD)** — via `src/lib/admin-users.functions.ts`
+   (todas com `requireSupabaseAuth` + checagem `has_role(admin)`):
+   - `createUserAccount` — cria usuário no Auth (`supabaseAdmin.auth.admin.createUser`)
+     e grava o cargo em `user_roles`.
+   - `updateUserRole` — troca o cargo (não permite alterar o próprio).
+   - `deleteUserAccount` — remove a conta (não permite excluir a si mesmo).
+   - A listagem lê `profiles` + `user_roles` no cliente (RLS aplicada).
+   - Cargos disponíveis: `admin | tecnico | atendente | usuario | solicitante`.
+
+2. **Relançamento de Banco de Dados** — componente `src/components/DbTransferPanel.tsx`
+   (usa `JSZip`) + server fns em `src/lib/db-transfer.functions.ts`
+   (admin-only via `assertAdmin`):
+   - **Exportar** (`exportTicketsData`): baixa um `.zip` com `chamados.json`
+     (chamados finalizados + histórico completo) e pasta `imagens/` (fotos de
+     encerramento via signed URLs temporárias do bucket `ticket-proofs`).
+   - **Importar** (`importTicket`): lê o `.zip`, recria cada chamado (título,
+     descrição, resolução, status, histórico) e re-faz o upload das imagens no
+     bucket `ticket-proofs`. Referências a pessoas ausentes usam o admin
+     importador como fallback → funciona entre projetos Supabase distintos.
+
+> Requer `JSZip` no `package.json` (dependência do frontend). As server fns usam
+> `supabaseAdmin` (service role) — garanta `SUPABASE_SERVICE_ROLE_KEY` no
+> ambiente do servidor e o bucket `ticket-proofs` criado no destino.
 
 ---
 
