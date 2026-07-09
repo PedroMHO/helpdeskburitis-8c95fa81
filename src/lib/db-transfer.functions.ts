@@ -1,15 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import type { TicketPriority, TicketStatus } from "@/lib/helpdesk";
 
 const BUCKET = "ticket-proofs";
 
-type AuthedSupabase = Parameters<
-  Parameters<typeof requireSupabaseAuth.server>[0]
->[0]["context"]["supabase"];
-
-async function assertAdmin(supabase: AuthedSupabase, userId: string) {
+async function assertAdmin(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+) {
   const { data: isAdmin, error } = await supabase.rpc("has_role", {
     _user_id: userId,
     _role: "admin",
