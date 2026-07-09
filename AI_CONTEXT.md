@@ -125,8 +125,13 @@ psql "$DATABASE_URL" -f schema.sql
 - Cargos SEMPRE via `user_roles` + `has_role()` (evita escalonamento de privilégio).
 - **Nunca** cheque cargo por localStorage/hardcode no cliente.
 - Server functions privilegiadas verificam o cargo do chamador antes de usar
-  `supabaseAdmin` (service role). Ver `src/lib/admin-users.functions.ts`.
+  `supabaseAdmin` (service role). Ver `src/lib/admin-users.functions.ts` e
+  `src/lib/db-transfer.functions.ts` (ambas chamam `assertAdmin`/`has_role`).
 - Cadastro público desabilitado (login somente).
+- **RLS de `tickets`:** a política `tickets_update` tem `WITH CHECK` restritivo —
+  solicitantes só editam o próprio chamado sem alterar `status`/técnico
+  (impede auto-encerramento, reatribuição e escalonamento de prioridade).
+  Cargos de staff e o técnico designado mantêm edição completa. Preserve isso.
 
 ---
 
