@@ -297,6 +297,10 @@ function AdminPanel() {
         </div>
       </form>
 
+      <DbTransferPanel />
+
+
+
       <section className="rounded-xl glass-card p-2 shadow-sm sm:p-4">
         <h2 className="px-2 pb-2 pt-1 text-sm font-semibold text-foreground">
           Usuários cadastrados ({users?.length ?? 0})
