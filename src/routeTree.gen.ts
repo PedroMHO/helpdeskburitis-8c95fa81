@@ -22,6 +22,7 @@ import { Route as AuthenticatedLancamentosRouteImport } from './routes/_authenti
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
+import { Route as AuthenticatedAguardandoVerificacaoRouteImport } from './routes/_authenticated/aguardando-verificacao'
 import { Route as AuthenticatedAgendadosRouteImport } from './routes/_authenticated/agendados'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTicketsIndexRouteImport } from './routes/_authenticated/tickets.index'
@@ -93,6 +94,12 @@ const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAguardandoVerificacaoRoute =
+  AuthenticatedAguardandoVerificacaoRouteImport.update({
+    id: '/aguardando-verificacao',
+    path: '/aguardando-verificacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAgendadosRoute = AuthenticatedAgendadosRouteImport.update({
   id: '/agendados',
   path: '/agendados',
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agendados': typeof AuthenticatedAgendadosRoute
+  '/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -146,6 +154,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agendados': typeof AuthenticatedAgendadosRoute
+  '/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -166,6 +175,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agendados': typeof AuthenticatedAgendadosRoute
+  '/_authenticated/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/agendados'
+    | '/aguardando-verificacao'
     | '/config'
     | '/dashboard'
     | '/historico'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/agendados'
+    | '/aguardando-verificacao'
     | '/config'
     | '/dashboard'
     | '/historico'
@@ -225,6 +237,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/agendados'
+    | '/_authenticated/aguardando-verificacao'
     | '/_authenticated/config'
     | '/_authenticated/dashboard'
     | '/_authenticated/historico'
@@ -339,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/aguardando-verificacao': {
+      id: '/_authenticated/aguardando-verificacao'
+      path: '/aguardando-verificacao'
+      fullPath: '/aguardando-verificacao'
+      preLoaderRoute: typeof AuthenticatedAguardandoVerificacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/agendados': {
       id: '/_authenticated/agendados'
       path: '/agendados'
@@ -395,6 +415,7 @@ const AuthenticatedTicketsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAgendadosRoute: typeof AuthenticatedAgendadosRoute
+  AuthenticatedAguardandoVerificacaoRoute: typeof AuthenticatedAguardandoVerificacaoRoute
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
@@ -409,6 +430,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAgendadosRoute: AuthenticatedAgendadosRoute,
+  AuthenticatedAguardandoVerificacaoRoute:
+    AuthenticatedAguardandoVerificacaoRoute,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
