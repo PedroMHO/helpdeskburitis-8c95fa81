@@ -87,6 +87,7 @@ function TicketDetail() {
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const proofInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const { takeNativePhoto } = useMobileFeatures();
 
