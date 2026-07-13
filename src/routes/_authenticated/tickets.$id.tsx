@@ -773,12 +773,18 @@ function TicketDetail() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="proof">Imagem de comprovação *</Label>
+              {/* accept + capture="environment" abrem a câmera traseira em
+                  Android/Chrome; o usuário ainda pode escolher da galeria. */}
               <Input
                 id="proof"
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              <p className="text-xs text-muted-foreground">
+                Toque para tirar uma foto com a câmera ou escolher da galeria.
+              </p>
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
