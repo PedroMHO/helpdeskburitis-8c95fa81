@@ -87,6 +87,23 @@ function TicketDetail() {
   const [file, setFile] = useState<File | null>(null);
   const proofInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
+  const { takeNativePhoto } = useMobileFeatures();
+
+  // Câmera nativa (APK Capacitor). Na web retorna null e usamos o fallback
+  // do <input type="file" capture="environment">.
+  const handleNativeCamera = async () => {
+    const shot = await takeNativePhoto();
+    if (!shot) {
+      // Web ou plugin indisponível: dispara o input HTML5 nativo.
+      proofInputRef.current?.click();
+      return;
+    }
+    setFile(
+      new File([shot.blob], shot.fileName, {
+        type: shot.blob.type || "image/jpeg",
+      }),
+    );
+  };
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [deleting, setDeleting] = useState(false);
