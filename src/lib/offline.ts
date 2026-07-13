@@ -132,7 +132,9 @@ export function setupOfflineSupport(queryClient: QueryClient): void {
   initialized = true;
 
   persistQueryClient({
-    queryClient,
+    // Cast: duplicate (identical-version) query-core copies are nominally
+    // distinct to TS but runtime-compatible.
+    queryClient: queryClient as never,
     persister: createIdbPersister(),
     maxAge: 1000 * 60 * 60 * 24, // 24h de cache offline
     // Apenas listas de leitura são úteis offline.
