@@ -111,43 +111,10 @@ export function useMobileFeatures() {
    * Registra Push Notifications no dispositivo nativo e salva o token FCM
    * atrelado ao usuário na tabela `device_tokens`. No-op no navegador web.
    */
-  const registerPushNotifications = useCallback(async (): Promise<void> => {
-    if (!(await isNativePlatform())) return; // Web: ignora silenciosamente.
-    try {
-      const { PushNotifications } = await import(
-        "@capacitor/push-notifications"
-      );
-      const { Capacitor } = await import("@capacitor/core");
-
-      let perm = await PushNotifications.checkPermissions();
-      if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
-        perm = await PushNotifications.requestPermissions();
-      }
-      if (perm.receive !== "granted") return;
-
-      await PushNotifications.addListener("registration", async (token) => {
-        const { data } = await supabase.auth.getUser();
-        const uid = data.user?.id;
-        if (!uid || !token?.value) return;
-        await supabase.from("device_tokens").upsert(
-          {
-            user_id: uid,
-            token: token.value,
-            platform: Capacitor.getPlatform(),
-          },
-          { onConflict: "user_id,token" },
-        );
-      });
-
-      await PushNotifications.addListener("registrationError", () => {
-        // Falha de registro: ignora silenciosamente (sem Push neste device).
-      });
-
-      await PushNotifications.register();
-    } catch {
-      // Plugin indisponível ou erro nativo: degrade sem quebrar o app.
-    }
-  }, []);
+  const registerPushNotifications = useCallback(
+    () => registerPushOnLogin(),
+    [],
+  );
 
   return { takeNativePhoto, registerPushNotifications, isNativePlatform };
 }
