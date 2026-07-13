@@ -138,6 +138,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Camada offline-first (IndexedDB + fila de mutações). Só roda no browser.
+  useEffect(() => {
+    let cancelled = false;
+    void import("@/lib/offline").then(({ setupOfflineSupport }) => {
+      if (!cancelled) setupOfflineSupport(queryClient);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
