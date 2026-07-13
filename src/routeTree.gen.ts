@@ -17,6 +17,7 @@ import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPendentesRouteImport } from './routes/_authenticated/pendentes'
+import { Route as AuthenticatedPendenteAprovacaoRouteImport } from './routes/_authenticated/pendente-aprovacao'
 import { Route as AuthenticatedManutencaoRouteImport } from './routes/_authenticated/manutencao'
 import { Route as AuthenticatedLancamentosRouteImport } from './routes/_authenticated/lancamentos'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
@@ -68,6 +69,12 @@ const AuthenticatedPendentesRoute = AuthenticatedPendentesRouteImport.update({
   path: '/pendentes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPendenteAprovacaoRoute =
+  AuthenticatedPendenteAprovacaoRouteImport.update({
+    id: '/pendente-aprovacao',
+    path: '/pendente-aprovacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedManutencaoRoute = AuthenticatedManutencaoRouteImport.update({
   id: '/manutencao',
   path: '/manutencao',
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/historico': typeof AuthenticatedHistoricoRoute
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/manutencao': typeof AuthenticatedManutencaoRoute
+  '/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/pendentes': typeof AuthenticatedPendentesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/historico': typeof AuthenticatedHistoricoRoute
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/manutencao': typeof AuthenticatedManutencaoRoute
+  '/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/pendentes': typeof AuthenticatedPendentesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -181,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/lancamentos': typeof AuthenticatedLancamentosRoute
   '/_authenticated/manutencao': typeof AuthenticatedManutencaoRoute
+  '/_authenticated/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/_authenticated/pendentes': typeof AuthenticatedPendentesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/historico'
     | '/lancamentos'
     | '/manutencao'
+    | '/pendente-aprovacao'
     | '/pendentes'
     | '/perfil'
     | '/tickets'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/historico'
     | '/lancamentos'
     | '/manutencao'
+    | '/pendente-aprovacao'
     | '/pendentes'
     | '/perfil'
     | '/usuarios'
@@ -243,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authenticated/historico'
     | '/_authenticated/lancamentos'
     | '/_authenticated/manutencao'
+    | '/_authenticated/pendente-aprovacao'
     | '/_authenticated/pendentes'
     | '/_authenticated/perfil'
     | '/_authenticated/tickets'
@@ -315,6 +328,13 @@ declare module '@tanstack/react-router' {
       path: '/pendentes'
       fullPath: '/pendentes'
       preLoaderRoute: typeof AuthenticatedPendentesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pendente-aprovacao': {
+      id: '/_authenticated/pendente-aprovacao'
+      path: '/pendente-aprovacao'
+      fullPath: '/pendente-aprovacao'
+      preLoaderRoute: typeof AuthenticatedPendenteAprovacaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/manutencao': {
@@ -421,6 +441,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
   AuthenticatedLancamentosRoute: typeof AuthenticatedLancamentosRoute
   AuthenticatedManutencaoRoute: typeof AuthenticatedManutencaoRoute
+  AuthenticatedPendenteAprovacaoRoute: typeof AuthenticatedPendenteAprovacaoRoute
   AuthenticatedPendentesRoute: typeof AuthenticatedPendentesRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
@@ -437,6 +458,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
   AuthenticatedLancamentosRoute: AuthenticatedLancamentosRoute,
   AuthenticatedManutencaoRoute: AuthenticatedManutencaoRoute,
+  AuthenticatedPendenteAprovacaoRoute: AuthenticatedPendenteAprovacaoRoute,
   AuthenticatedPendentesRoute: AuthenticatedPendentesRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
