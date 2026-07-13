@@ -7,6 +7,8 @@ export type TicketStatus =
   | "em_atendimento"
   | "em_manutencao"
   | "pendente_conclusao"
+  | "aguardando_verificacao"
+  | "pendente_aprovacao"
   | "pronto_entrega"
   | "finalizado";
 export type TicketPriority = "baixa" | "media" | "alta";
