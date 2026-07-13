@@ -207,6 +207,8 @@ psql "$DATABASE_URL" -f schema.sql
 | `/_authenticated/usuarios`,`/config` | Admin/Atendente        | Gestão de usuários e setores    |
 | `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (ver seção 8.1)  |
 | `/_authenticated/lancamentos`     | Autenticado               | Lançamentos em massa            |
+| `/_authenticated/aguardando-verificacao` | Admin/Técnico/Atendente | Chamados escalonados p/ verificação |
+| `/_authenticated/pendente-aprovacao` | **Admin apenas**       | Conflitos de encerramento (aprovar/recusar baixa) |
 
 Rotas sob `_authenticated/` são protegidas pelo gate em
 `src/routes/_authenticated/route.tsx` (redireciona para `/auth` sem sessão).
