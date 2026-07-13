@@ -642,10 +642,38 @@ function TicketDetail() {
                   <UserIcon className="h-4 w-4" /> Transferir
                 </Button>
               )}
+              {canVerify &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "aguardando_verificacao" &&
+                ticket.status !== "pendente_aprovacao" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setVerifying(true)}
+                    disabled={busy}
+                  >
+                    <ShieldAlert className="h-4 w-4" /> Transferir para verificação
+                  </Button>
+                )}
+              {canApprove && ticket.status === "pendente_aprovacao" && (
+                <>
+                  <Button onClick={aprovarBaixa} disabled={busy}>
+                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <ThumbsUp className="h-4 w-4" /> Aprovar Baixa
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={recusarBaixa}
+                    disabled={busy}
+                  >
+                    <ThumbsDown className="h-4 w-4" /> Recusar Baixa
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
+
 
       <AlertDialog open={deleting} onOpenChange={setDeleting}>
         <AlertDialogContent>
