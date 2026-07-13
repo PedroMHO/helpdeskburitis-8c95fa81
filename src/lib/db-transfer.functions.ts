@@ -166,7 +166,7 @@ export const importTicket = createServerFn({ method: "POST" })
       id: newId,
       titulo: ticket.titulo,
       descricao: ticket.descricao,
-      status: ticket.status as TicketStatus,
+      status: asDbStatus(ticket.status as TicketStatus),
       priority: ticket.priority as TicketPriority,
       solicitante_id: userId,
       solicitante_nome: ticket.solicitante_nome ?? null,
