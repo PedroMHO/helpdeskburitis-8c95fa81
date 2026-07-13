@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useMobileFeatures } from "@/hooks/useMobileFeatures";
 import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus } from "@/lib/data";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
