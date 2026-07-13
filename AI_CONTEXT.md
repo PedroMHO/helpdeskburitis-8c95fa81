@@ -32,7 +32,8 @@ exportação de dados. Interface com estética "Liquid Glass" (inspirada no iOS)
 | Server logic  | `createServerFn` (`@tanstack/react-start`), NÃO edge functions       |
 | Build server  | Nitro preset `node-server` → saída em `.output/server/index.mjs`     |
 | Gerenciador   | **bun** (fallback: npm)                                              |
-| Mobile        | PWA (`manifest.webmanifest` + service worker) + Capacitor (opcional) |
+| Mobile        | PWA (`manifest.webmanifest`) + **Capacitor** (APK Android nativo) — ver seção 12 |
+| Offline       | `@tanstack/react-query-persist-client` + `idb-keyval` (cache + fila de mutações) |
 
 > **Importante:** este NÃO é Next.js/Remix. Não use `use server`,
 > `getServerSideProps` nem `react-router-dom`. Rotas ficam em `src/routes/`.
@@ -86,12 +87,20 @@ psql "$DATABASE_URL" -f schema.sql
   `has_role(uuid, app_role)` SECURITY DEFINER.
 - `tickets` — chamados. Enum `ticket_status`
   (`aguardando | aguardando_agendamento | agendado | em_atendimento |
-  em_manutencao | pendente_conclusao | pronto_entrega | finalizado`) e
+  em_manutencao | pendente_conclusao | aguardando_verificacao |
+  pendente_aprovacao | pronto_entrega | finalizado`) e
   `ticket_priority` (`baixa | media | alta`).
-- `ticket_history` — histórico de mudanças.
+  - `aguardando_verificacao` — chamado escalonado para análise de superior.
+  - `pendente_aprovacao` — conflito de encerramento (duplicidade) aguardando
+    decisão do admin (Aprovar/Recusar baixa).
+- `ticket_history` — histórico de mudanças (guarda `changed_by` e `note`;
+  também registra a 2ª tentativa de baixa em conflitos de concorrência).
 - `notifications` — notificações por usuário.
 - `technician_status` — disponibilidade do técnico (por setor).
 - `solicitantes` — solicitantes por setor.
+- `device_tokens` — tokens de Push (FCM) por dispositivo, vinculados ao usuário
+  (`user_id`, `token`, `platform`). RLS: cada usuário gerencia apenas os seus.
+  Preenchido pelo app nativo (Capacitor) após o login. Ver seção 12.
 - Hierarquia de localidade: `cidades → bairros → setores`.
 
 ### Funções e automações relevantes
@@ -198,6 +207,8 @@ psql "$DATABASE_URL" -f schema.sql
 | `/_authenticated/usuarios`,`/config` | Admin/Atendente        | Gestão de usuários e setores    |
 | `/_authenticated/admin`           | **Admin apenas**          | Painel isolado (ver seção 8.1)  |
 | `/_authenticated/lancamentos`     | Autenticado               | Lançamentos em massa            |
+| `/_authenticated/aguardando-verificacao` | Admin/Técnico/Atendente | Chamados escalonados p/ verificação |
+| `/_authenticated/pendente-aprovacao` | **Admin apenas**       | Conflitos de encerramento (aprovar/recusar baixa) |
 
 Rotas sob `_authenticated/` são protegidas pelo gate em
 `src/routes/_authenticated/route.tsx` (redireciona para `/auth` sem sessão).
@@ -254,7 +265,9 @@ function. `import.meta.env.VITE_*` é para o cliente.
 ## 10. Instruções para IAs continuarem o desenvolvimento
 
 1. **Leia primeiro:** este arquivo → `vite.config.ts` → `src/routes/__root.tsx`
-   → `src/lib/auth.tsx` → `src/lib/data.ts` / `src/lib/helpdesk.ts`.
+   → `src/lib/auth.tsx` → `src/lib/data.ts` / `src/lib/helpdesk.ts`. Para mobile:
+   `src/hooks/useMobileFeatures.ts`, `src/lib/offline.ts` e `capacitor.config.ts`
+   (ver seção 12).
 2. **Rotas:** crie arquivos em `src/routes/` (convenção flat, ex.
    `posts.$id.tsx`). NUNCA edite `src/routeTree.gen.ts` (gerado). Não use
    `src/pages/`.
@@ -281,3 +294,69 @@ function. `import.meta.env.VITE_*` é para o cliente.
 - [x] `schema.sql` completo e idempotente na raiz.
 - [x] Guia de deploy (PM2/Nginx/Docker) em `deploy/`.
 - [x] Documentação para IAs (este arquivo).
+
+---
+
+## 12. Mobile nativo (Capacitor / APK Android) + Offline-first
+
+### 12.1 Dependências
+Todas já estão em `package.json` (instale com `bun install`):
+
+| Pacote                                   | Uso                                          |
+| ---------------------------------------- | -------------------------------------------- |
+| `@capacitor/core`                        | Núcleo do Capacitor / detecção de plataforma |
+| `@capacitor/camera`                      | Câmera nativa (foto de encerramento no APK)  |
+| `@capacitor/push-notifications`          | Push nativo via Firebase (FCM)               |
+| `@tanstack/react-query-persist-client`   | Persistência do cache do React Query         |
+| `idb-keyval`                             | Store IndexedDB (cache + fila de mutações)   |
+| `jszip`                                  | Export/import do "Relançamento de Banco"     |
+
+CLI de build (dev deps, instale ao gerar o APK):
+`@capacitor/cli` e `@capacitor/android`.
+
+Config do Capacitor: `capacitor.config.ts` (`appId: app.lovable.helpdeskburitis`,
+`webDir: dist`).
+
+### 12.2 Isolamento de código nativo (graceful degradation)
+- **`src/hooks/useMobileFeatures.ts`** — serviço unificado. Todos os imports
+  dos plugins Capacitor são **dinâmicos** e protegidos por `try/catch`, então o
+  bundle web nunca quebra se um plugin não existir.
+  - `isNativePlatform()` — usa `Capacitor.isNativePlatform()`.
+  - `takeNativePhoto()` — no APK usa `Camera.getPhoto` e converte a URI em Blob;
+    na web retorna `null` (o chamador cai no fallback HTML5).
+  - `registerPushOnLogin()` / `registerPushNotifications()` — no APK pede
+    permissão (`checkPermissions`/`requestPermissions`), registra o listener
+    `registration` e faz `upsert` do token FCM em `device_tokens`. No-op na web.
+- **Câmera de encerramento** (`src/routes/_authenticated/tickets.$id.tsx`):
+  o botão "Tirar Foto do Encerramento" chama `takeNativePhoto()`; se retornar
+  `null` (web), dispara o `<input type="file" accept="image/*"
+  capture="environment">` oculto (força a câmera traseira no Android/Chrome sob
+  HTTPS, com fallback para galeria). O upload ao bucket `ticket-proofs` é o mesmo
+  nos dois caminhos.
+- **Push após login**: `src/lib/auth.tsx` chama `registerPushOnLogin()` no evento
+  `SIGNED_IN` do `onAuthStateChange`.
+
+### 12.3 Offline-first
+- **`src/lib/offline.ts`** — `setupOfflineSupport(queryClient)` (chamado no
+  `__root.tsx`) persiste o cache das queries de leitura (`tickets`, `profiles`,
+  `tecnicos`, `localidades`) no IndexedDB e mantém uma **fila de mutações**
+  (`queueMutation`/`flushMutationQueue`) reprocessada no evento
+  `window 'online'`. Handlers reais são registrados via `registerMutationHandler`.
+
+### 12.4 Passo a passo para gerar o APK
+```bash
+bun install
+bun add -d @capacitor/cli @capacitor/android
+bun run build:mobile        # gera os estáticos em dist/ (webDir)
+npx cap add android         # apenas na 1ª vez
+npx cap sync android        # copia web + plugins nativos
+npx cap open android        # abre no Android Studio → Build > Generate APK
+```
+- **Push (FCM):** adicione o `google-services.json` do Firebase em
+  `android/app/` e habilite o Cloud Messaging. Os tokens capturados ficam em
+  `device_tokens`; o envio das notificações é feito por um serviço externo/backend
+  que lê essa tabela (service role).
+- **Permissões:** Câmera e Notificações são solicitadas em runtime pelos plugins.
+
+> Web e APK compartilham 100% do mesmo código; a diferença é resolvida em runtime
+> por `Capacitor.isNativePlatform()`. Nenhuma funcionalidade web é perdida no APK.
