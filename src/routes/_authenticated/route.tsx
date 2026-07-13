@@ -71,6 +71,19 @@ const NAV: NavItem[] = [
     show: ({ isAdmin, isTecnico, isAtendente }) =>
       isAdmin || isTecnico || isAtendente,
   },
+  {
+    to: "/aguardando-verificacao",
+    label: "Aguardando Verificação",
+    icon: ShieldAlert,
+    show: ({ isAdmin, isTecnico, isAtendente }) =>
+      isAdmin || isTecnico || isAtendente,
+  },
+  {
+    to: "/pendente-aprovacao",
+    label: "Pendente de Aprovação",
+    icon: ClipboardCheck,
+    show: ({ isAdmin }) => isAdmin,
+  },
   { to: "/historico", label: "Histórico", icon: History, show: ({ isSolicitante }) => !isSolicitante },
   {
     to: "/tickets/novo",
