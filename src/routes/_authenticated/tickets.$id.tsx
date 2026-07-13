@@ -11,6 +11,9 @@ import {
   User as UserIcon,
   Calendar,
   Trash2,
+  ShieldAlert,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import {
   AlertDialog,
