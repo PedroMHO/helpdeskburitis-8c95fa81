@@ -838,7 +838,7 @@ function TicketDetail() {
                 type="button"
                 variant="outline"
                 className="w-full justify-start gap-2"
-                onClick={() => proofInputRef.current?.click()}
+                onClick={handleNativeCamera}
               >
                 <Camera className="h-4 w-4" />
                 {file ? "Trocar foto do encerramento" : "Tirar Foto do Encerramento"}
