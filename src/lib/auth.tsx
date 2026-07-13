@@ -67,6 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(sess?.user ?? null);
       if (sess?.user) {
         setTimeout(() => loadProfile(sess.user.id), 0);
+        if (_e === "SIGNED_IN") {
+          // Registra Push (FCM) somente no app nativo; no-op na web.
+          void import("@/hooks/useMobileFeatures").then((m) =>
+            m.registerPushOnLogin(),
+          );
+        }
       } else {
         setProfile(null);
         setRoles([]);
