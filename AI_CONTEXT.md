@@ -292,3 +292,69 @@ function. `import.meta.env.VITE_*` é para o cliente.
 - [x] `schema.sql` completo e idempotente na raiz.
 - [x] Guia de deploy (PM2/Nginx/Docker) em `deploy/`.
 - [x] Documentação para IAs (este arquivo).
+
+---
+
+## 12. Mobile nativo (Capacitor / APK Android) + Offline-first
+
+### 12.1 Dependências
+Todas já estão em `package.json` (instale com `bun install`):
+
+| Pacote                                   | Uso                                          |
+| ---------------------------------------- | -------------------------------------------- |
+| `@capacitor/core`                        | Núcleo do Capacitor / detecção de plataforma |
+| `@capacitor/camera`                      | Câmera nativa (foto de encerramento no APK)  |
+| `@capacitor/push-notifications`          | Push nativo via Firebase (FCM)               |
+| `@tanstack/react-query-persist-client`   | Persistência do cache do React Query         |
+| `idb-keyval`                             | Store IndexedDB (cache + fila de mutações)   |
+| `jszip`                                  | Export/import do "Relançamento de Banco"     |
+
+CLI de build (dev deps, instale ao gerar o APK):
+`@capacitor/cli` e `@capacitor/android`.
+
+Config do Capacitor: `capacitor.config.ts` (`appId: app.lovable.helpdeskburitis`,
+`webDir: dist`).
+
+### 12.2 Isolamento de código nativo (graceful degradation)
+- **`src/hooks/useMobileFeatures.ts`** — serviço unificado. Todos os imports
+  dos plugins Capacitor são **dinâmicos** e protegidos por `try/catch`, então o
+  bundle web nunca quebra se um plugin não existir.
+  - `isNativePlatform()` — usa `Capacitor.isNativePlatform()`.
+  - `takeNativePhoto()` — no APK usa `Camera.getPhoto` e converte a URI em Blob;
+    na web retorna `null` (o chamador cai no fallback HTML5).
+  - `registerPushOnLogin()` / `registerPushNotifications()` — no APK pede
+    permissão (`checkPermissions`/`requestPermissions`), registra o listener
+    `registration` e faz `upsert` do token FCM em `device_tokens`. No-op na web.
+- **Câmera de encerramento** (`src/routes/_authenticated/tickets.$id.tsx`):
+  o botão "Tirar Foto do Encerramento" chama `takeNativePhoto()`; se retornar
+  `null` (web), dispara o `<input type="file" accept="image/*"
+  capture="environment">` oculto (força a câmera traseira no Android/Chrome sob
+  HTTPS, com fallback para galeria). O upload ao bucket `ticket-proofs` é o mesmo
+  nos dois caminhos.
+- **Push após login**: `src/lib/auth.tsx` chama `registerPushOnLogin()` no evento
+  `SIGNED_IN` do `onAuthStateChange`.
+
+### 12.3 Offline-first
+- **`src/lib/offline.ts`** — `setupOfflineSupport(queryClient)` (chamado no
+  `__root.tsx`) persiste o cache das queries de leitura (`tickets`, `profiles`,
+  `tecnicos`, `localidades`) no IndexedDB e mantém uma **fila de mutações**
+  (`queueMutation`/`flushMutationQueue`) reprocessada no evento
+  `window 'online'`. Handlers reais são registrados via `registerMutationHandler`.
+
+### 12.4 Passo a passo para gerar o APK
+```bash
+bun install
+bun add -d @capacitor/cli @capacitor/android
+bun run build:mobile        # gera os estáticos em dist/ (webDir)
+npx cap add android         # apenas na 1ª vez
+npx cap sync android        # copia web + plugins nativos
+npx cap open android        # abre no Android Studio → Build > Generate APK
+```
+- **Push (FCM):** adicione o `google-services.json` do Firebase em
+  `android/app/` e habilite o Cloud Messaging. Os tokens capturados ficam em
+  `device_tokens`; o envio das notificações é feito por um serviço externo/backend
+  que lê essa tabela (service role).
+- **Permissões:** Câmera e Notificações são solicitadas em runtime pelos plugins.
+
+> Web e APK compartilham 100% do mesmo código; a diferença é resolvida em runtime
+> por `Capacitor.isNativePlatform()`. Nenhuma funcionalidade web é perdida no APK.
