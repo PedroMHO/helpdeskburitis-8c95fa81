@@ -128,16 +128,22 @@ function TicketDetail() {
     return parts.length ? parts.join(" · ") : "Não informada";
   };
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
   const recordHistory = async (
-    from: typeof ticket.status,
-    to: typeof ticket.status,
+    from: TicketStatus,
+    to: TicketStatus,
     historyNote?: string,
   ) => {
     if (!user) return;
     await supabase.from("ticket_history").insert({
       ticket_id: ticket.id,
-      from_status: from,
-      to_status: to,
+      from_status: asDbStatus(from),
+      to_status: asDbStatus(to),
       changed_by: user.id,
       note: historyNote ?? null,
     });
