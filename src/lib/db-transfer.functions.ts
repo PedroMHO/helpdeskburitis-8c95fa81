@@ -183,8 +183,8 @@ export const importTicket = createServerFn({ method: "POST" })
     if (ticket.history?.length) {
       const rows = ticket.history.map((h) => ({
         ticket_id: newId,
-        from_status: (h.from_status ?? null) as TicketStatus | null,
-        to_status: h.to_status as TicketStatus,
+        from_status: h.from_status ? asDbStatus(h.from_status as TicketStatus) : null,
+        to_status: asDbStatus(h.to_status as TicketStatus),
         changed_by: userId,
         note: h.note ?? null,
         created_at: h.created_at ?? new Date().toISOString(),
