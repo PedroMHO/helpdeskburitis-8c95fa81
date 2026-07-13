@@ -89,6 +89,8 @@ function TicketDetail() {
   const [deleting, setDeleting] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [transferTo, setTransferTo] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyNote, setVerifyNote] = useState("");
 
 
   useEffect(() => {
