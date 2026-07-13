@@ -836,6 +836,15 @@ function TicketDetail() {
                 className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              {/* Input separado para importar da galeria (sem capture). */}
+              <input
+                ref={galleryInputRef}
+                id="proof-gallery"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -845,13 +854,22 @@ function TicketDetail() {
                 <Camera className="h-4 w-4" />
                 {file ? "Trocar foto do encerramento" : "Tirar Foto do Encerramento"}
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <ImagePlus className="h-4 w-4" />
+                Importar da galeria
+              </Button>
               {file && (
                 <p className="truncate text-xs text-muted-foreground">
                   Selecionado: {file.name}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Toque para tirar uma foto com a câmera ou escolher da galeria.
+                Tire uma foto com a câmera ou importe uma imagem existente da galeria.
               </p>
             </div>
           </div>
