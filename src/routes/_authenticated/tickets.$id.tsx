@@ -15,6 +15,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Camera,
+  ImagePlus,
 } from "lucide-react";
 import {
   AlertDialog,
