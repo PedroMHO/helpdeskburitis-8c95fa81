@@ -32,7 +32,8 @@ exportação de dados. Interface com estética "Liquid Glass" (inspirada no iOS)
 | Server logic  | `createServerFn` (`@tanstack/react-start`), NÃO edge functions       |
 | Build server  | Nitro preset `node-server` → saída em `.output/server/index.mjs`     |
 | Gerenciador   | **bun** (fallback: npm)                                              |
-| Mobile        | PWA (`manifest.webmanifest` + service worker) + Capacitor (opcional) |
+| Mobile        | PWA (`manifest.webmanifest`) + **Capacitor** (APK Android nativo) — ver seção 12 |
+| Offline       | `@tanstack/react-query-persist-client` + `idb-keyval` (cache + fila de mutações) |
 
 > **Importante:** este NÃO é Next.js/Remix. Não use `use server`,
 > `getServerSideProps` nem `react-router-dom`. Rotas ficam em `src/routes/`.
