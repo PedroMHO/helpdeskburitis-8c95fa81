@@ -108,9 +108,14 @@ function TicketDetail() {
   const canSchedule = canManage || isAtendente;
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
-  const canTransfer = isAdmin || isAtendente;
+  // Técnicos agora podem transferir chamados como os administradores/atendentes.
+  const canTransfer = isAdmin || isAtendente || isTecnico;
+  // Admin, técnico e atendente podem enviar um chamado para verificação.
+  const canVerify = isAdmin || isTecnico || isAtendente;
   const showStatusButtons = isTecnico || isAtendente;
   const canFinalizarRapido = isAdmin || isAtendente;
+  const canApprove = isAdmin;
+
 
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
