@@ -265,7 +265,9 @@ function. `import.meta.env.VITE_*` é para o cliente.
 ## 10. Instruções para IAs continuarem o desenvolvimento
 
 1. **Leia primeiro:** este arquivo → `vite.config.ts` → `src/routes/__root.tsx`
-   → `src/lib/auth.tsx` → `src/lib/data.ts` / `src/lib/helpdesk.ts`.
+   → `src/lib/auth.tsx` → `src/lib/data.ts` / `src/lib/helpdesk.ts`. Para mobile:
+   `src/hooks/useMobileFeatures.ts`, `src/lib/offline.ts` e `capacitor.config.ts`
+   (ver seção 12).
 2. **Rotas:** crie arquivos em `src/routes/` (convenção flat, ex.
    `posts.$id.tsx`). NUNCA edite `src/routeTree.gen.ts` (gerado). Não use
    `src/pages/`.
