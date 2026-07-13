@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   ThumbsUp,
   ThumbsDown,
+  Camera,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -83,6 +84,7 @@ function TicketDetail() {
   const [quickFinalizing, setQuickFinalizing] = useState(false);
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const proofInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
@@ -801,16 +803,33 @@ function TicketDetail() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="proof">Imagem de comprovação *</Label>
-              {/* accept + capture="environment" abrem a câmera traseira em
-                  Android/Chrome; o usuário ainda pode escolher da galeria. */}
-              <Input
+              <Label>Imagem de comprovação *</Label>
+              {/* Input nativo oculto: accept + capture="environment" forçam a
+                  câmera traseira no Android/Chrome. Se o dispositivo não
+                  suportar 'capture', o mesmo input abre a galeria de fotos. */}
+              <input
+                ref={proofInputRef}
                 id="proof"
                 type="file"
                 accept="image/*"
                 capture="environment"
+                className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => proofInputRef.current?.click()}
+              >
+                <Camera className="h-4 w-4" />
+                {file ? "Trocar foto do encerramento" : "Tirar Foto do Encerramento"}
+              </Button>
+              {file && (
+                <p className="truncate text-xs text-muted-foreground">
+                  Selecionado: {file.name}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Toque para tirar uma foto com a câmera ou escolher da galeria.
               </p>
