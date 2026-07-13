@@ -87,12 +87,20 @@ psql "$DATABASE_URL" -f schema.sql
   `has_role(uuid, app_role)` SECURITY DEFINER.
 - `tickets` — chamados. Enum `ticket_status`
   (`aguardando | aguardando_agendamento | agendado | em_atendimento |
-  em_manutencao | pendente_conclusao | pronto_entrega | finalizado`) e
+  em_manutencao | pendente_conclusao | aguardando_verificacao |
+  pendente_aprovacao | pronto_entrega | finalizado`) e
   `ticket_priority` (`baixa | media | alta`).
-- `ticket_history` — histórico de mudanças.
+  - `aguardando_verificacao` — chamado escalonado para análise de superior.
+  - `pendente_aprovacao` — conflito de encerramento (duplicidade) aguardando
+    decisão do admin (Aprovar/Recusar baixa).
+- `ticket_history` — histórico de mudanças (guarda `changed_by` e `note`;
+  também registra a 2ª tentativa de baixa em conflitos de concorrência).
 - `notifications` — notificações por usuário.
 - `technician_status` — disponibilidade do técnico (por setor).
 - `solicitantes` — solicitantes por setor.
+- `device_tokens` — tokens de Push (FCM) por dispositivo, vinculados ao usuário
+  (`user_id`, `token`, `platform`). RLS: cada usuário gerencia apenas os seus.
+  Preenchido pelo app nativo (Capacitor) após o login. Ver seção 12.
 - Hierarquia de localidade: `cidades → bairros → setores`.
 
 ### Funções e automações relevantes
