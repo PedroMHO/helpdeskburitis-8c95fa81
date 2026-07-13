@@ -17,11 +17,13 @@ import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated/tickets'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPendentesRouteImport } from './routes/_authenticated/pendentes'
+import { Route as AuthenticatedPendenteAprovacaoRouteImport } from './routes/_authenticated/pendente-aprovacao'
 import { Route as AuthenticatedManutencaoRouteImport } from './routes/_authenticated/manutencao'
 import { Route as AuthenticatedLancamentosRouteImport } from './routes/_authenticated/lancamentos'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
+import { Route as AuthenticatedAguardandoVerificacaoRouteImport } from './routes/_authenticated/aguardando-verificacao'
 import { Route as AuthenticatedAgendadosRouteImport } from './routes/_authenticated/agendados'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTicketsIndexRouteImport } from './routes/_authenticated/tickets.index'
@@ -67,6 +69,12 @@ const AuthenticatedPendentesRoute = AuthenticatedPendentesRouteImport.update({
   path: '/pendentes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPendenteAprovacaoRoute =
+  AuthenticatedPendenteAprovacaoRouteImport.update({
+    id: '/pendente-aprovacao',
+    path: '/pendente-aprovacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedManutencaoRoute = AuthenticatedManutencaoRouteImport.update({
   id: '/manutencao',
   path: '/manutencao',
@@ -93,6 +101,12 @@ const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAguardandoVerificacaoRoute =
+  AuthenticatedAguardandoVerificacaoRouteImport.update({
+    id: '/aguardando-verificacao',
+    path: '/aguardando-verificacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAgendadosRoute = AuthenticatedAgendadosRouteImport.update({
   id: '/agendados',
   path: '/agendados',
@@ -127,11 +141,13 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agendados': typeof AuthenticatedAgendadosRoute
+  '/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/manutencao': typeof AuthenticatedManutencaoRoute
+  '/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/pendentes': typeof AuthenticatedPendentesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -146,11 +162,13 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agendados': typeof AuthenticatedAgendadosRoute
+  '/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/lancamentos': typeof AuthenticatedLancamentosRoute
   '/manutencao': typeof AuthenticatedManutencaoRoute
+  '/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/pendentes': typeof AuthenticatedPendentesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -166,11 +184,13 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agendados': typeof AuthenticatedAgendadosRoute
+  '/_authenticated/aguardando-verificacao': typeof AuthenticatedAguardandoVerificacaoRoute
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/lancamentos': typeof AuthenticatedLancamentosRoute
   '/_authenticated/manutencao': typeof AuthenticatedManutencaoRoute
+  '/_authenticated/pendente-aprovacao': typeof AuthenticatedPendenteAprovacaoRoute
   '/_authenticated/pendentes': typeof AuthenticatedPendentesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -187,11 +207,13 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/agendados'
+    | '/aguardando-verificacao'
     | '/config'
     | '/dashboard'
     | '/historico'
     | '/lancamentos'
     | '/manutencao'
+    | '/pendente-aprovacao'
     | '/pendentes'
     | '/perfil'
     | '/tickets'
@@ -206,11 +228,13 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/agendados'
+    | '/aguardando-verificacao'
     | '/config'
     | '/dashboard'
     | '/historico'
     | '/lancamentos'
     | '/manutencao'
+    | '/pendente-aprovacao'
     | '/pendentes'
     | '/perfil'
     | '/usuarios'
@@ -225,11 +249,13 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/agendados'
+    | '/_authenticated/aguardando-verificacao'
     | '/_authenticated/config'
     | '/_authenticated/dashboard'
     | '/_authenticated/historico'
     | '/_authenticated/lancamentos'
     | '/_authenticated/manutencao'
+    | '/_authenticated/pendente-aprovacao'
     | '/_authenticated/pendentes'
     | '/_authenticated/perfil'
     | '/_authenticated/tickets'
@@ -304,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPendentesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pendente-aprovacao': {
+      id: '/_authenticated/pendente-aprovacao'
+      path: '/pendente-aprovacao'
+      fullPath: '/pendente-aprovacao'
+      preLoaderRoute: typeof AuthenticatedPendenteAprovacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/manutencao': {
       id: '/_authenticated/manutencao'
       path: '/manutencao'
@@ -337,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/config'
       fullPath: '/config'
       preLoaderRoute: typeof AuthenticatedConfigRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/aguardando-verificacao': {
+      id: '/_authenticated/aguardando-verificacao'
+      path: '/aguardando-verificacao'
+      fullPath: '/aguardando-verificacao'
+      preLoaderRoute: typeof AuthenticatedAguardandoVerificacaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/agendados': {
@@ -395,11 +435,13 @@ const AuthenticatedTicketsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAgendadosRoute: typeof AuthenticatedAgendadosRoute
+  AuthenticatedAguardandoVerificacaoRoute: typeof AuthenticatedAguardandoVerificacaoRoute
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
   AuthenticatedLancamentosRoute: typeof AuthenticatedLancamentosRoute
   AuthenticatedManutencaoRoute: typeof AuthenticatedManutencaoRoute
+  AuthenticatedPendenteAprovacaoRoute: typeof AuthenticatedPendenteAprovacaoRoute
   AuthenticatedPendentesRoute: typeof AuthenticatedPendentesRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
@@ -409,11 +451,14 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAgendadosRoute: AuthenticatedAgendadosRoute,
+  AuthenticatedAguardandoVerificacaoRoute:
+    AuthenticatedAguardandoVerificacaoRoute,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
   AuthenticatedLancamentosRoute: AuthenticatedLancamentosRoute,
   AuthenticatedManutencaoRoute: AuthenticatedManutencaoRoute,
+  AuthenticatedPendenteAprovacaoRoute: AuthenticatedPendenteAprovacaoRoute,
   AuthenticatedPendentesRoute: AuthenticatedPendentesRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,

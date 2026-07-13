@@ -16,8 +16,10 @@ import {
   Users,
   Settings,
   ClipboardList,
+  ClipboardCheck,
   CalendarClock,
   Wrench,
+  ShieldAlert,
   LogOut,
   Menu,
   Loader2,
@@ -68,6 +70,19 @@ const NAV: NavItem[] = [
     icon: ClipboardList,
     show: ({ isAdmin, isTecnico, isAtendente }) =>
       isAdmin || isTecnico || isAtendente,
+  },
+  {
+    to: "/aguardando-verificacao",
+    label: "Aguardando Verificação",
+    icon: ShieldAlert,
+    show: ({ isAdmin, isTecnico, isAtendente }) =>
+      isAdmin || isTecnico || isAtendente,
+  },
+  {
+    to: "/pendente-aprovacao",
+    label: "Pendente de Aprovação",
+    icon: ClipboardCheck,
+    show: ({ isAdmin }) => isAdmin,
   },
   { to: "/historico", label: "Histórico", icon: History, show: ({ isSolicitante }) => !isSolicitante },
   {

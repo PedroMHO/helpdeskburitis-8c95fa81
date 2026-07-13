@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import type { TicketPriority, TicketStatus } from "@/lib/helpdesk";
+import { asDbStatus, type TicketPriority, type TicketStatus } from "@/lib/helpdesk";
 
 const BUCKET = "ticket-proofs";
 
@@ -166,7 +166,7 @@ export const importTicket = createServerFn({ method: "POST" })
       id: newId,
       titulo: ticket.titulo,
       descricao: ticket.descricao,
-      status: ticket.status as TicketStatus,
+      status: asDbStatus(ticket.status as TicketStatus),
       priority: ticket.priority as TicketPriority,
       solicitante_id: userId,
       solicitante_nome: ticket.solicitante_nome ?? null,
@@ -183,8 +183,8 @@ export const importTicket = createServerFn({ method: "POST" })
     if (ticket.history?.length) {
       const rows = ticket.history.map((h) => ({
         ticket_id: newId,
-        from_status: (h.from_status ?? null) as TicketStatus | null,
-        to_status: h.to_status as TicketStatus,
+        from_status: h.from_status ? asDbStatus(h.from_status as TicketStatus) : null,
+        to_status: asDbStatus(h.to_status as TicketStatus),
         changed_by: userId,
         note: h.note ?? null,
         created_at: h.created_at ?? new Date().toISOString(),

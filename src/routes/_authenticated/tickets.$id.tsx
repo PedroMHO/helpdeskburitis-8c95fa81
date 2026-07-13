@@ -11,6 +11,9 @@ import {
   User as UserIcon,
   Calendar,
   Trash2,
+  ShieldAlert,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -45,7 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUS_LABEL, type TicketStatus } from "@/lib/helpdesk";
+import { STATUS_LABEL, asDbStatus, type TicketStatus } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/_authenticated/tickets/$id")({
   head: () => ({ meta: [{ title: "Chamado — HelpDesk Buritis" }] }),
@@ -86,6 +89,8 @@ function TicketDetail() {
   const [deleting, setDeleting] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [transferTo, setTransferTo] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyNote, setVerifyNote] = useState("");
 
 
   useEffect(() => {
@@ -103,9 +108,14 @@ function TicketDetail() {
   const canSchedule = canManage || isAtendente;
   const isOwner = !!user && ticket.solicitante_id === user.id;
   const canDelete = isAdmin || isOwner;
-  const canTransfer = isAdmin || isAtendente;
+  // Técnicos agora podem transferir chamados como os administradores/atendentes.
+  const canTransfer = isAdmin || isAtendente || isTecnico;
+  // Admin, técnico e atendente podem enviar um chamado para verificação.
+  const canVerify = isAdmin || isTecnico || isAtendente;
   const showStatusButtons = isTecnico || isAtendente;
   const canFinalizarRapido = isAdmin || isAtendente;
+  const canApprove = isAdmin;
+
 
   const name = (uid: string | null) =>
     profiles.find((p) => p.id === uid)?.full_name || "—";
@@ -118,16 +128,22 @@ function TicketDetail() {
     return parts.length ? parts.join(" · ") : "Não informada";
   };
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["ticket", id] });
+    qc.invalidateQueries({ queryKey: ["tickets"] });
+    qc.invalidateQueries({ queryKey: ["technician-status"] });
+  };
+
   const recordHistory = async (
-    from: typeof ticket.status,
-    to: typeof ticket.status,
+    from: TicketStatus,
+    to: TicketStatus,
     historyNote?: string,
   ) => {
     if (!user) return;
     await supabase.from("ticket_history").insert({
       ticket_id: ticket.id,
-      from_status: from,
-      to_status: to,
+      from_status: asDbStatus(from),
+      to_status: asDbStatus(to),
       changed_by: user.id,
       note: historyNote ?? null,
     });
@@ -170,7 +186,7 @@ function TicketDetail() {
     if (novo === "em_atendimento" && !ticket.tecnico_id) patch.tecnico_id = user.id;
     const { error } = await supabase
       .from("tickets")
-      .update(patch)
+      .update({ ...patch, status: asDbStatus(novo) })
       .eq("id", ticket.id);
     if (!error) {
       await recordHistory(ticket.status, novo);
@@ -179,9 +195,30 @@ function TicketDetail() {
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
-    qc.invalidateQueries({ queryKey: ["ticket", id] });
-    qc.invalidateQueries({ queryKey: ["tickets"] });
-    qc.invalidateQueries({ queryKey: ["technician-status"] });
+    invalidateAll();
+  };
+
+  // Ação: Transferir para verificação (admin, técnico, atendente).
+  const transferirParaVerificacao = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: asDbStatus("aguardando_verificacao") })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(
+        ticket.status,
+        "aguardando_verificacao",
+        verifyNote.trim() || undefined,
+      );
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado transferido para verificação.");
+    setVerifying(false);
+    setVerifyNote("");
+    invalidateAll();
   };
 
   const agendar = async () => {
@@ -192,7 +229,7 @@ function TicketDetail() {
       .from("tickets")
       .update({
         scheduled_at: new Date(scheduleAt).toISOString(),
-        status: "agendado",
+        status: asDbStatus("agendado"),
       })
       .eq("id", ticket.id);
     if (!error && ticket.status !== "agendado")
@@ -201,8 +238,7 @@ function TicketDetail() {
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado agendado!");
     setScheduling(false);
-    qc.invalidateQueries({ queryKey: ["ticket", id] });
-    qc.invalidateQueries({ queryKey: ["tickets"] });
+    invalidateAll();
   };
 
   const finalizar = async () => {
@@ -222,28 +258,51 @@ function TicketDetail() {
       return toast.error("Erro no upload", { description: upErr.message });
     }
 
-    const { error } = await supabase
+    // Prevenção de conflito/duplicidade: só finaliza se ainda não estiver
+    // 'finalizado'. Se outro técnico já deu baixa, capturamos a 2ª tentativa
+    // e enviamos para aprovação administrativa.
+    const { data: updated, error } = await supabase
       .from("tickets")
       .update({
-        status: "finalizado",
+        status: asDbStatus("finalizado"),
         closing_note: note.trim(),
         closing_image_url: path,
         closed_at: new Date().toISOString(),
         closed_by: user.id,
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
-      .eq("id", ticket.id);
+      .eq("id", ticket.id)
+      .neq("status", asDbStatus("finalizado"))
+      .select("id");
+    if (!error && (!updated || updated.length === 0)) {
+      await supabase
+        .from("tickets")
+        .update({ status: asDbStatus("pendente_aprovacao") })
+        .eq("id", ticket.id);
+      await recordHistory(
+        "finalizado",
+        "pendente_aprovacao",
+        `[CONFLITO — 2ª tentativa de baixa] ${note.trim()} (imagem: ${path})`,
+      );
+      setBusy(false);
+      setFinalizing(false);
+      toast.warning("Conflito detectado", {
+        description:
+          "Este chamado já havia sido finalizado. Enviado para aprovação do administrador.",
+      });
+      invalidateAll();
+      return;
+    }
     if (!error) {
       await recordHistory(ticket.status, "finalizado", note.trim());
+      if (ticket.tecnico_id) await setTechnicianStatus(ticket.tecnico_id, "disponivel", null);
       await setTechnicianStatus(user.id, "disponivel", null);
     }
     setBusy(false);
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado finalizado!");
     setFinalizing(false);
-    qc.invalidateQueries({ queryKey: ["ticket", id] });
-    qc.invalidateQueries({ queryKey: ["tickets"] });
-    qc.invalidateQueries({ queryKey: ["technician-status"] });
+    invalidateAll();
   };
 
   const parcialmenteCompletar = async () => {
@@ -252,7 +311,7 @@ function TicketDetail() {
     const { error } = await supabase
       .from("tickets")
       .update({
-        status: "pendente_conclusao",
+        status: asDbStatus("pendente_conclusao"),
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
       .eq("id", ticket.id);
@@ -264,9 +323,7 @@ function TicketDetail() {
     if (error) return toast.error("Erro", { description: error.message });
     toast.success("Chamado marcado como Pendente de Conclusão.");
     setFinalizing(false);
-    qc.invalidateQueries({ queryKey: ["ticket", id] });
-    qc.invalidateQueries({ queryKey: ["tickets"] });
-    qc.invalidateQueries({ queryKey: ["technician-status"] });
+    invalidateAll();
   };
 
   const finalizarRapido = async () => {
@@ -274,16 +331,39 @@ function TicketDetail() {
     if (!note.trim())
       return toast.error("A descrição/conclusão é obrigatória.");
     setBusy(true);
-    const { error } = await supabase
+    // Mesma proteção de concorrência do fluxo de finalização com imagem.
+    const { data: updated, error } = await supabase
       .from("tickets")
       .update({
-        status: "finalizado",
+        status: asDbStatus("finalizado"),
         closing_note: note.trim(),
         closed_at: new Date().toISOString(),
         closed_by: user.id,
         tecnico_id: ticket.tecnico_id ?? user.id,
       })
-      .eq("id", ticket.id);
+      .eq("id", ticket.id)
+      .neq("status", asDbStatus("finalizado"))
+      .select("id");
+    if (!error && (!updated || updated.length === 0)) {
+      await supabase
+        .from("tickets")
+        .update({ status: asDbStatus("pendente_aprovacao") })
+        .eq("id", ticket.id);
+      await recordHistory(
+        "finalizado",
+        "pendente_aprovacao",
+        `[CONFLITO — 2ª tentativa de baixa] ${note.trim()}`,
+      );
+      setBusy(false);
+      setQuickFinalizing(false);
+      setNote("");
+      toast.warning("Conflito detectado", {
+        description:
+          "Este chamado já havia sido finalizado. Enviado para aprovação do administrador.",
+      });
+      invalidateAll();
+      return;
+    }
     if (!error) {
       await recordHistory(ticket.status, "finalizado", note.trim());
       if (ticket.tecnico_id) await setTechnicianStatus(ticket.tecnico_id, "disponivel", null);
@@ -293,10 +373,47 @@ function TicketDetail() {
     toast.success("Chamado finalizado!");
     setQuickFinalizing(false);
     setNote("");
-    qc.invalidateQueries({ queryKey: ["ticket", id] });
-    qc.invalidateQueries({ queryKey: ["tickets"] });
-    qc.invalidateQueries({ queryKey: ["technician-status"] });
+    invalidateAll();
   };
+
+  // Aprovação/recusa administrativa de baixas em conflito (pendente_aprovacao).
+  const aprovarBaixa = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        status: asDbStatus("finalizado"),
+        closed_at: ticket.closed_at ?? new Date().toISOString(),
+        closed_by: ticket.closed_by ?? user.id,
+      })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "finalizado", "Baixa aprovada pelo administrador.");
+      if (ticket.tecnico_id) await setTechnicianStatus(ticket.tecnico_id, "disponivel", null);
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Baixa aprovada — chamado finalizado.");
+    invalidateAll();
+  };
+
+  const recusarBaixa = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: asDbStatus("aguardando") })
+      .eq("id", ticket.id);
+    if (!error) {
+      await recordHistory(ticket.status, "aguardando", "Baixa recusada — devolvido para a fila.");
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Baixa recusada — chamado devolvido para atendimento.");
+    invalidateAll();
+  };
+
 
 
   const excluir = async () => {
@@ -525,10 +642,38 @@ function TicketDetail() {
                   <UserIcon className="h-4 w-4" /> Transferir
                 </Button>
               )}
+              {canVerify &&
+                ticket.status !== "finalizado" &&
+                ticket.status !== "aguardando_verificacao" &&
+                ticket.status !== "pendente_aprovacao" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setVerifying(true)}
+                    disabled={busy}
+                  >
+                    <ShieldAlert className="h-4 w-4" /> Transferir para verificação
+                  </Button>
+                )}
+              {canApprove && ticket.status === "pendente_aprovacao" && (
+                <>
+                  <Button onClick={aprovarBaixa} disabled={busy}>
+                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <ThumbsUp className="h-4 w-4" /> Aprovar Baixa
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={recusarBaixa}
+                    disabled={busy}
+                  >
+                    <ThumbsDown className="h-4 w-4" /> Recusar Baixa
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
+
 
       <AlertDialog open={deleting} onOpenChange={setDeleting}>
         <AlertDialogContent>
@@ -582,6 +727,35 @@ function TicketDetail() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={verifying} onOpenChange={setVerifying}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir para verificação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="verify-note">Motivo / Observação (opcional)</Label>
+            <Textarea
+              id="verify-note"
+              value={verifyNote}
+              onChange={(e) => setVerifyNote(e.target.value)}
+              rows={3}
+              placeholder="Ex.: aguardando verificação de conectividade/servidor..."
+              maxLength={2000}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVerifying(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={transferirParaVerificacao} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              <ShieldAlert className="h-4 w-4" /> Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={scheduling} onOpenChange={setScheduling}>
 
         <DialogContent>
@@ -628,12 +802,18 @@ function TicketDetail() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="proof">Imagem de comprovação *</Label>
+              {/* accept + capture="environment" abrem a câmera traseira em
+                  Android/Chrome; o usuário ainda pode escolher da galeria. */}
               <Input
                 id="proof"
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              <p className="text-xs text-muted-foreground">
+                Toque para tirar uma foto com a câmera ou escolher da galeria.
+              </p>
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
