@@ -727,6 +727,35 @@ function TicketDetail() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={verifying} onOpenChange={setVerifying}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir para verificação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="verify-note">Motivo / Observação (opcional)</Label>
+            <Textarea
+              id="verify-note"
+              value={verifyNote}
+              onChange={(e) => setVerifyNote(e.target.value)}
+              rows={3}
+              placeholder="Ex.: aguardando verificação de conectividade/servidor..."
+              maxLength={2000}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVerifying(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={transferirParaVerificacao} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              <ShieldAlert className="h-4 w-4" /> Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={scheduling} onOpenChange={setScheduling}>
 
         <DialogContent>
