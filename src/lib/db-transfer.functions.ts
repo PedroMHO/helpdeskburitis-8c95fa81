@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import type { TicketPriority, TicketStatus } from "@/lib/helpdesk";
+import { asDbStatus, type TicketPriority, type TicketStatus } from "@/lib/helpdesk";
 
 const BUCKET = "ticket-proofs";
 
