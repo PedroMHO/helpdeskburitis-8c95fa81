@@ -495,6 +495,8 @@ export type Database = {
         | "aguardando_agendamento"
         | "pronto_entrega"
         | "pendente_conclusao"
+        | "aguardando_verificacao"
+        | "pendente_aprovacao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -633,6 +635,8 @@ export const Constants = {
         "aguardando_agendamento",
         "pronto_entrega",
         "pendente_conclusao",
+        "aguardando_verificacao",
+        "pendente_aprovacao",
       ],
     },
   },
