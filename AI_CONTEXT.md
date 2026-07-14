@@ -357,11 +357,10 @@ usando `nitro` (preset `node-server`) e o wrapper de erro SSR — nada muda.
 
 ### 12.4 Passo a passo para gerar o APK
 ```bash
-bun install
-bun add -d @capacitor/cli @capacitor/android
-bun run build:mobile        # gera os estáticos em dist/ (webDir)
+bun install                 # instala tudo, incluindo @capacitor/cli, @capacitor/android e cross-env
+bun run build:mobile        # build SPA estático → dist/ (com index.html, webDir)
 npx cap add android         # apenas na 1ª vez
-npx cap sync android        # copia web + plugins nativos
+npx cap sync android        # copia web (dist/) + plugins nativos
 npx cap open android        # abre no Android Studio → Build > Generate APK
 ```
 - **Push (FCM):** adicione o `google-services.json` do Firebase em
