@@ -6,11 +6,18 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Quando MOBILE_BUILD=true (usado pelo script "build:mobile"), habilitamos o modo
+// SPA do TanStack Start: ele prerenderiza um shell "index.html" estático em
+// .output/public, que é exatamente o que o Capacitor precisa (sem SSR).
+const isMobileBuild = process.env.MOBILE_BUILD === "true";
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // SPA shell só no build mobile — o build web/SSR padrão continua intacto.
+    ...(isMobileBuild ? { spa: { enabled: true } } : {}),
   },
   nitro: {
     preset: "node-server",
