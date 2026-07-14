@@ -311,11 +311,23 @@ Todas já estão em `package.json` (instale com `bun install`):
 | `idb-keyval`                             | Store IndexedDB (cache + fila de mutações)   |
 | `jszip`                                  | Export/import do "Relançamento de Banco"     |
 
-CLI de build (dev deps, instale ao gerar o APK):
-`@capacitor/cli` e `@capacitor/android`.
+CLI e utilitários de build (dev deps, já no `package.json`):
+`@capacitor/cli`, `@capacitor/android` e `cross-env` (define `MOBILE_BUILD`
+de forma cross-platform no script `build:mobile`).
 
 Config do Capacitor: `capacitor.config.ts` (`appId: app.lovable.helpdeskburitis`,
 `webDir: dist`).
+
+**Build SPA para o Capacitor (sem SSR):** o `vite.config.ts` detecta
+`MOBILE_BUILD=true` e, nesse modo, (1) habilita o modo **SPA** do TanStack Start
+(`spa.enabled` com `maskPath: "/auth"`, gerando um shell estático) e (2)
+desliga o plugin `nitro` (deploy) para usar a saída estática padrão. O script
+`build:mobile` roda `cross-env MOBILE_BUILD=true vite build` e depois
+`scripts/prepare-mobile.mjs`, que promove `dist/client/*` para a raiz de `dist`,
+renomeia o shell (`_shell.html`) para `index.html` e remove artefatos de
+servidor. Resultado: `dist/index.html` + assets estáticos, prontos para
+`cap sync`. O build web/SSR padrão (`vite build` / `bun run build`) continua
+usando `nitro` (preset `node-server`) e o wrapper de erro SSR — nada muda.
 
 ### 12.2 Isolamento de código nativo (graceful degradation)
 - **`src/hooks/useMobileFeatures.ts`** — serviço unificado. Todos os imports
@@ -345,11 +357,10 @@ Config do Capacitor: `capacitor.config.ts` (`appId: app.lovable.helpdeskburitis`
 
 ### 12.4 Passo a passo para gerar o APK
 ```bash
-bun install
-bun add -d @capacitor/cli @capacitor/android
-bun run build:mobile        # gera os estáticos em dist/ (webDir)
+bun install                 # instala tudo, incluindo @capacitor/cli, @capacitor/android e cross-env
+bun run build:mobile        # build SPA estático → dist/ (com index.html, webDir)
 npx cap add android         # apenas na 1ª vez
-npx cap sync android        # copia web + plugins nativos
+npx cap sync android        # copia web (dist/) + plugins nativos
 npx cap open android        # abre no Android Studio → Build > Generate APK
 ```
 - **Push (FCM):** adicione o `google-services.json` do Firebase em
