@@ -17,7 +17,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
     // SPA shell só no build mobile — o build web/SSR padrão continua intacto.
-    ...(isMobileBuild ? { spa: { enabled: true } } : {}),
+    // maskPath aponta para uma rota pública (/auth) para o shell prerenderizar
+    // sem disparar os redirects de autenticação da rota "/".
+    ...(isMobileBuild
+      ? { spa: { enabled: true, maskPath: "/auth" } }
+      : {}),
   },
   nitro: {
     preset: "node-server",
