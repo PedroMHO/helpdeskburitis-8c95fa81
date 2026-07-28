@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Ticket, Clock, Wrench, CheckCircle2, Activity } from "lucide-react";
+import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
 import { fetchTickets, fetchLocalidades, fetchProfiles } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { TechnicianStatusPanel } from "@/components/TechnicianStatusPanel";
 import { DashboardCharts } from "@/components/DashboardCharts";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -163,37 +164,7 @@ function Dashboard() {
         resolveName={resolveName}
         showCompletionCharts={!isSolicitante}
         feedSlot={
-          isSolicitante ? null : (
-          <div className="glass-card rounded-2xl border shadow-sm">
-            <div className="flex items-center gap-2 border-b px-5 py-4">
-              <Activity className="h-4 w-4 text-muted-foreground" />
-              <h2 className="font-semibold text-foreground">Feed de Atividades:</h2>
-            </div>
-            {feed.length === 0 ? (
-              <p className="p-5 text-sm text-muted-foreground">Nenhuma conclusão registrada.</p>
-            ) : (
-              <ul className="max-h-72 space-y-1 overflow-auto p-4">
-                {feed.map((t) => (
-                  <li key={t.id} className="rounded-lg px-3 py-2 text-sm hover:bg-muted/50">
-                    <span className="font-medium text-foreground">
-                      {resolveName(t.closed_by ?? t.tecnico_id)}
-                    </span>{" "}
-                    Concluiu um chamado -{" "}
-                    <span className="text-muted-foreground">
-                      {new Date(t.closed_at!).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          )
+          isSolicitante ? null : <ActivityFeed feed={feed} profiles={profiles} />
         }
       />
 

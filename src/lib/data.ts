@@ -27,6 +27,7 @@ export interface ProfileLite {
   id: string;
   full_name: string;
   email: string;
+  avatar_url: string | null;
 }
 
 export async function fetchTickets(): Promise<TicketRow[]> {
@@ -53,9 +54,9 @@ export async function fetchProfiles(): Promise<ProfileLite[]> {
   // so every authenticated user can resolve names for tickets they can see.
   const { data, error } = await supabase.rpc("profiles_directory");
   if (error) throw error;
-  return ((data ?? []) as ProfileLite[]).sort((a, b) =>
-    (a.full_name || "").localeCompare(b.full_name || ""),
-  );
+  return ((data ?? []) as unknown as ProfileLite[])
+    .map((p) => ({ ...p, avatar_url: p.avatar_url ?? null }))
+    .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
 }
 
 export interface TecnicoLite {
