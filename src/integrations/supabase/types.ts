@@ -467,6 +467,7 @@ export type Database = {
       profiles_directory: {
         Args: never
         Returns: {
+          avatar_url: string
           email: string
           full_name: string
           id: string
