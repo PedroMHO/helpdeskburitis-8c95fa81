@@ -193,7 +193,7 @@ function Dashboard() {
                 <Link
                   to="/tickets/$id"
                   params={{ id: t.id }}
-                  className="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-muted/50"
+                  className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-foreground">{t.titulo}</p>
@@ -204,11 +204,12 @@ function Dashboard() {
                       {new Date(t.created_at).toLocaleString("pt-BR")}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
                     <PriorityBadge priority={t.priority} />
                     <StatusBadge status={t.status} />
                   </div>
                 </Link>
+
               </li>
             ))}
           </ul>
