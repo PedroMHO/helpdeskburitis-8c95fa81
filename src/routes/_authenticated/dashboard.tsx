@@ -67,11 +67,12 @@ function BrasiliaClock() {
     second: "2-digit",
   });
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-4 py-1.5 text-sm font-medium text-foreground shadow-sm">
-      <Clock className="h-4 w-4 text-muted-foreground" />
-      {text} (Brasília)
+    <span className="inline-flex max-w-full items-center gap-2 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm sm:px-4 sm:text-sm">
+      <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="truncate">{text} (Brasília)</span>
     </span>
   );
+
 }
 
 function Dashboard() {
