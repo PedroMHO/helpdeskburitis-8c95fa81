@@ -137,9 +137,9 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold text-foreground sm:text-2xl">
             {greeting(new Date())}, {profile?.full_name?.split(" ")[0] || "bem-vindo"}
           </h1>
           <p className="text-sm text-muted-foreground">Visão Geral Do Sistema</p>
@@ -147,7 +147,8 @@ function Dashboard() {
         <BrasiliaClock />
       </div>
 
-      <div className={cn("grid grid-cols-2 gap-4", isSolicitante ? "lg:grid-cols-2" : "lg:grid-cols-4")}>
+      <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", isSolicitante ? "lg:grid-cols-2" : "lg:grid-cols-4")}>
+
         <StatCard label="Aberto" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
         {!isSolicitante && (
           <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
