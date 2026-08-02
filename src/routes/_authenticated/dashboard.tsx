@@ -29,18 +29,19 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="glass-card rounded-2xl border p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-3xl font-bold text-foreground">{value}</p>
+    <div className="glass-card rounded-2xl border p-4 shadow-sm sm:p-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
+          <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
         </div>
-        <div className={cn("flex h-11 w-11 items-center justify-center rounded-lg", accent)}>
+        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11", accent)}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>
   );
+
 }
 
 function greeting(d: Date) {
