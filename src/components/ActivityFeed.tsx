@@ -119,9 +119,9 @@ export function ActivityFeed({
             return (
               <li
                 key={ticket.id}
-                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
+                className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
               >
-                <Avatar className="h-10 w-10 border border-background/60 shadow-sm">
+                <Avatar className="h-10 w-10 shrink-0 border border-background/60 shadow-sm">
                   {photoUrl ? (
                     <AvatarImage
                       src={photoUrl}
@@ -139,8 +139,8 @@ export function ActivityFeed({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="truncate text-sm text-foreground">
+                  <div className="flex flex-col gap-x-3 gap-y-0.5 sm:flex-row sm:items-baseline sm:justify-between">
+                    <p className="min-w-0 truncate text-sm text-foreground">
                       <span className="font-semibold">{name}</span>{" "}
                       <span className="text-muted-foreground">
                         Concluiu um chamado
@@ -160,6 +160,7 @@ export function ActivityFeed({
                   </p>
                 </div>
               </li>
+
             );
           })}
         </ul>

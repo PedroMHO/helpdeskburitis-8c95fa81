@@ -29,18 +29,19 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="glass-card rounded-2xl border p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-3xl font-bold text-foreground">{value}</p>
+    <div className="glass-card rounded-2xl border p-4 shadow-sm sm:p-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
+          <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
         </div>
-        <div className={cn("flex h-11 w-11 items-center justify-center rounded-lg", accent)}>
+        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11", accent)}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>
   );
+
 }
 
 function greeting(d: Date) {
@@ -66,11 +67,12 @@ function BrasiliaClock() {
     second: "2-digit",
   });
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-4 py-1.5 text-sm font-medium text-foreground shadow-sm">
-      <Clock className="h-4 w-4 text-muted-foreground" />
-      {text} (Brasília)
+    <span className="inline-flex max-w-full items-center gap-2 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm sm:px-4 sm:text-sm">
+      <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="truncate">{text} (Brasília)</span>
     </span>
   );
+
 }
 
 function Dashboard() {
@@ -135,9 +137,9 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold text-foreground sm:text-2xl">
             {greeting(new Date())}, {profile?.full_name?.split(" ")[0] || "bem-vindo"}
           </h1>
           <p className="text-sm text-muted-foreground">Visão Geral Do Sistema</p>
@@ -145,7 +147,8 @@ function Dashboard() {
         <BrasiliaClock />
       </div>
 
-      <div className={cn("grid grid-cols-2 gap-4", isSolicitante ? "lg:grid-cols-2" : "lg:grid-cols-4")}>
+      <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2", isSolicitante ? "lg:grid-cols-2" : "lg:grid-cols-4")}>
+
         <StatCard label="Aberto" value={aguardando} icon={Clock} accent="bg-status-aguardando/15 text-status-aguardando" />
         {!isSolicitante && (
           <StatCard label="Em Atendimento" value={andamento} icon={Wrench} accent="bg-status-atendimento/15 text-status-atendimento" />
@@ -190,7 +193,7 @@ function Dashboard() {
                 <Link
                   to="/tickets/$id"
                   params={{ id: t.id }}
-                  className="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-muted/50"
+                  className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-foreground">{t.titulo}</p>
@@ -201,11 +204,12 @@ function Dashboard() {
                       {new Date(t.created_at).toLocaleString("pt-BR")}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
                     <PriorityBadge priority={t.priority} />
                     <StatusBadge status={t.status} />
                   </div>
                 </Link>
+
               </li>
             ))}
           </ul>
