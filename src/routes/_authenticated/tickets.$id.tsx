@@ -30,7 +30,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
-import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus } from "@/lib/data";
+import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus, fetchTicketSolicitacoes } from "@/lib/data";
+import { SolicitacaoCards } from "@/components/SolicitacaoCards";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,10 @@ function TicketDetail() {
   const { data: tecnicos = [] } = useQuery({
     queryKey: ["tecnicos"],
     queryFn: fetchTecnicos,
+  });
+  const { data: solicitacoes = [] } = useQuery({
+    queryKey: ["ticket-solicitacoes", id],
+    queryFn: () => fetchTicketSolicitacoes(id),
   });
 
   const [proofUrl, setProofUrl] = useState<string | null>(null);
@@ -154,7 +159,42 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
     qc.invalidateQueries({ queryKey: ["technician-status"] });
+    qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", id] });
+    qc.invalidateQueries({ queryKey: ["ticket-history", id] });
   };
+
+  /**
+   * Regra de fila de solicitações: ao dar baixa na solicitação principal, se
+   * ainda existirem solicitações em aberto, o chamado NÃO é finalizado — a
+   * próxima solicitação passa a ser a descrição principal do chamado.
+   */
+  const promoverProximaSolicitacao = async (
+    resolucao: string,
+    imgPath: string | null,
+  ) => {
+    const abertas = solicitacoes.filter((s) => s.status !== "finalizada");
+    const next = abertas[0];
+    if (!next) return false;
+    await supabase
+      .from("tickets")
+      .update({
+        descricao: next.descricao,
+        priority: next.priority,
+        solicitante_nome: next.solicitante_nome,
+        solicitante_ref: next.solicitante_ref,
+      })
+      .eq("id", ticket.id);
+    await supabase.from("ticket_solicitacoes").delete().eq("id", next.id);
+    await recordHistory(
+      ticket.status,
+      ticket.status,
+      `Solicitação principal resolvida: ${resolucao}${
+        imgPath ? ` (imagem: ${imgPath})` : ""
+      } — a próxima solicitação assumiu a descrição do chamado: ${next.descricao}`,
+    );
+    return true;
+  };
+
 
   const recordHistory = async (
     from: TicketStatus,
@@ -280,6 +320,20 @@ function TicketDetail() {
       return toast.error("Erro no upload", { description: upErr.message });
     }
 
+    // Ainda há solicitações em aberto? Só a solicitação principal é resolvida.
+    if (await promoverProximaSolicitacao(note.trim(), path)) {
+      setBusy(false);
+      setFinalizing(false);
+      setNote("");
+      setFile(null);
+      toast.success("Solicitação principal resolvida!", {
+        description: "A próxima solicitação assumiu a descrição do chamado.",
+      });
+      invalidateAll();
+      return;
+    }
+
+
     // Prevenção de conflito/duplicidade: só finaliza se ainda não estiver
     // 'finalizado'. Se outro técnico já deu baixa, capturamos a 2ª tentativa
     // e enviamos para aprovação administrativa.
@@ -353,6 +407,16 @@ function TicketDetail() {
     if (!note.trim())
       return toast.error("A descrição/conclusão é obrigatória.");
     setBusy(true);
+    if (await promoverProximaSolicitacao(note.trim(), null)) {
+      setBusy(false);
+      setQuickFinalizing(false);
+      setNote("");
+      toast.success("Solicitação principal resolvida!", {
+        description: "A próxima solicitação assumiu a descrição do chamado.",
+      });
+      invalidateAll();
+      return;
+    }
     // Mesma proteção de concorrência do fluxo de finalização com imagem.
     const { data: updated, error } = await supabase
       .from("tickets")
@@ -695,6 +759,13 @@ function TicketDetail() {
           </div>
         )}
       </div>
+
+      {/* Cards das solicitações extras — cada uma finalizada individualmente. */}
+      <SolicitacaoCards
+        ticketId={ticket.id}
+        ticketStatus={ticket.status}
+        canFinalize={!isSolicitante && ticket.status !== "finalizado"}
+      />
 
 
       <AlertDialog open={deleting} onOpenChange={setDeleting}>

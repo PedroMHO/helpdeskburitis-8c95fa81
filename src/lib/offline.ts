@@ -38,12 +38,25 @@ function createIdbPersister(): Persister {
   return {
     persistClient: async (client) => {
       if (!store) return;
-      await set(CACHE_KEY, client, store);
+      // Serializamos em JSON: o structured clone do IndexedDB falha com
+      // valores não clonáveis (ex.: promises dentro do cache do Query).
+      try {
+        await set(CACHE_KEY, JSON.stringify(client), store);
+      } catch {
+        // cache não serializável — ignoramos silenciosamente
+      }
     },
     restoreClient: async () => {
       if (!store) return undefined;
-      return await get(CACHE_KEY, store);
+      const raw = await get(CACHE_KEY, store);
+      if (!raw) return undefined;
+      try {
+        return typeof raw === "string" ? JSON.parse(raw) : raw;
+      } catch {
+        return undefined;
+      }
     },
+
     removeClient: async () => {
       if (!store) return;
       await del(CACHE_KEY, store);

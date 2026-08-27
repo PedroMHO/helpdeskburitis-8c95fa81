@@ -74,18 +74,18 @@ export function AddSolicitacaoDialog({
     const solName = solicitanteRef
       ? solicitantes.find((s) => s.id === solicitanteRef)?.nome ?? null
       : null;
-    const stamp = new Date().toLocaleString("pt-BR");
-    const linha = `\n\n— Nova solicitação (${stamp})${
-      solName ? ` · ${solName}` : ""
-    } · Prioridade ${PRIORITY_LABEL[priority]}:\n${descricao.trim()}`;
 
-    const { error } = await supabase
-      .from("tickets")
-      .update({
-        descricao: `${ticket.descricao ?? ""}${linha}`.trim(),
-        priority,
-      })
-      .eq("id", ticket.id);
+    // Cada solicitação vira um registro próprio, exibido como um card
+    // separado no chamado e finalizável individualmente. O trigger no banco
+    // dispara a notificação para a equipe e para o técnico responsável.
+    const { error } = await supabase.from("ticket_solicitacoes").insert({
+      ticket_id: ticket.id,
+      descricao: descricao.trim(),
+      priority,
+      solicitante_ref: solicitanteRef || null,
+      solicitante_nome: solName,
+      created_by: user.id,
+    });
 
     if (!error) {
       await supabase.from("ticket_history").insert({
@@ -107,8 +107,11 @@ export function AddSolicitacaoDialog({
     onOpenChange(false);
     qc.invalidateQueries({ queryKey: ["tickets"] });
     qc.invalidateQueries({ queryKey: ["ticket", ticket.id] });
+    qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", ticket.id] });
     qc.invalidateQueries({ queryKey: ["ticket-history", ticket.id] });
+    qc.invalidateQueries({ queryKey: ["notifications"] });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

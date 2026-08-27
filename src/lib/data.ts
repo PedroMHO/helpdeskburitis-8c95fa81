@@ -173,3 +173,32 @@ export async function setTechnicianStatus(
       { onConflict: "user_id" },
     );
 }
+
+export interface SolicitacaoRow {
+  id: string;
+  ticket_id: string;
+  descricao: string;
+  priority: TicketPriority;
+  solicitante_ref: string | null;
+  solicitante_nome: string | null;
+  status: string;
+  closing_note: string | null;
+  closing_image_url: string | null;
+  closed_at: string | null;
+  closed_by: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+/** Solicitações extras anexadas a um chamado (cards adicionais). */
+export async function fetchTicketSolicitacoes(
+  ticketId: string,
+): Promise<SolicitacaoRow[]> {
+  const { data, error } = await supabase
+    .from("ticket_solicitacoes")
+    .select("*")
+    .eq("ticket_id", ticketId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as SolicitacaoRow[];
+}

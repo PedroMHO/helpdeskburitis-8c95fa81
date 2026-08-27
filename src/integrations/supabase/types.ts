@@ -305,6 +305,72 @@ export type Database = {
           },
         ]
       }
+      ticket_solicitacoes: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          closing_image_url: string | null
+          closing_note: string | null
+          created_at: string
+          created_by: string
+          descricao: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          solicitante_nome: string | null
+          solicitante_ref: string | null
+          status: string
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_image_url?: string | null
+          closing_note?: string | null
+          created_at?: string
+          created_by: string
+          descricao?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          solicitante_nome?: string | null
+          solicitante_ref?: string | null
+          status?: string
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_image_url?: string | null
+          closing_note?: string | null
+          created_at?: string
+          created_by?: string
+          descricao?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          solicitante_nome?: string | null
+          solicitante_ref?: string | null
+          status?: string
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_solicitacoes_solicitante_ref_fkey"
+            columns: ["solicitante_ref"]
+            isOneToOne: false
+            referencedRelation: "solicitantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_solicitacoes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           bairro_id: string | null
