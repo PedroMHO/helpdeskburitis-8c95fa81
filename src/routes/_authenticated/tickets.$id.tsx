@@ -760,6 +760,13 @@ function TicketDetail() {
         )}
       </div>
 
+      {/* Cards das solicitações extras — cada uma finalizada individualmente. */}
+      <SolicitacaoCards
+        ticketId={ticket.id}
+        ticketStatus={ticket.status}
+        canFinalize={!isSolicitante && ticket.status !== "finalizado"}
+      />
+
 
       <AlertDialog open={deleting} onOpenChange={setDeleting}>
         <AlertDialogContent>
