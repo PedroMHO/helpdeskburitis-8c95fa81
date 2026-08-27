@@ -75,10 +75,12 @@ export function SolicitacaoCards({
   ticketId,
   ticketStatus,
   canFinalize,
+  context = "detalhe",
 }: {
   ticketId: string;
   ticketStatus: TicketStatus;
   canFinalize: boolean;
+  context?: "detalhe" | "manutencao";
 }) {
   const { user, isAdmin, isTecnico, isAtendente } = useAuth();
   const qc = useQueryClient();
