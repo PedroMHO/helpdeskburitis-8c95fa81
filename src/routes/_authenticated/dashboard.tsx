@@ -118,9 +118,28 @@ function Dashboard() {
   const manutencao = tickets.filter((t) => t.status === "em_manutencao").length;
   const finalizados = tickets.filter((t) => t.status === "finalizado").length;
 
+  /**
+   * Chamados com solicitações enviadas para reparo saem da tela inicial e só
+   * retornam quando alguma delas for marcada como "Pronto para Entregar".
+   */
+  const emReparoIds = useMemo(() => {
+    const reparo = new Set<string>();
+    const liberado = new Set<string>();
+    for (const s of solicResumo) {
+      if (s.status === "em_reparo") reparo.add(s.ticket_id);
+      else liberado.add(s.ticket_id);
+    }
+    return new Set([...reparo].filter((id) => !liberado.has(id)));
+  }, [solicResumo]);
+
   const recentes = tickets
-    .filter((t) => t.status === "aguardando" || t.status === "em_atendimento")
+    .filter(
+      (t) =>
+        (t.status === "aguardando" || t.status === "em_atendimento") &&
+        !emReparoIds.has(t.id),
+    )
     .slice(0, 6);
+
 
   // Feed de atividades: conclusões mais recentes.
   const feed = useMemo(
