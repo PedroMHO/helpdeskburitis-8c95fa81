@@ -276,6 +276,7 @@ export function SolicitacaoCards({
           key={s.id}
           solicitacao={s}
           index={i + 2}
+          context={context}
           ticketStatus={ticketStatus}
           canFinalize={canFinalize}
           showStatusButtons={showStatusButtons}
