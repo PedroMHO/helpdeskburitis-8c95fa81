@@ -9,6 +9,9 @@ import {
   Loader2,
   MessageSquarePlus,
   ShieldAlert,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
   User as UserIcon,
   Wrench,
 } from "lucide-react";
@@ -23,12 +26,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 
 /** Situação de cada solicitação extra (espelha o fluxo do chamado). */
 const SOLIC_STATUS_LABEL: Record<string, string> = {
