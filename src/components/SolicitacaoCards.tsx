@@ -81,6 +81,11 @@ export function SolicitacaoCards({
   const showStatusButtons = isTecnico || isAtendente;
   const canSchedule = isAdmin || isTecnico || isAtendente;
   const canVerify = isAdmin || isTecnico || isAtendente;
+  const canManage = isAdmin || isTecnico;
+  const canFinalizarRapido = isAdmin || isAtendente;
+  const canApprove = isAdmin;
+  const canDelete = isAdmin;
+
 
   const [target, setTarget] = useState<SolicitacaoRow | null>(null);
   const [note, setNote] = useState("");
