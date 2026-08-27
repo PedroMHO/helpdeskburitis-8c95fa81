@@ -407,6 +407,16 @@ function TicketDetail() {
     if (!note.trim())
       return toast.error("A descrição/conclusão é obrigatória.");
     setBusy(true);
+    if (await promoverProximaSolicitacao(note.trim(), null)) {
+      setBusy(false);
+      setQuickFinalizing(false);
+      setNote("");
+      toast.success("Solicitação principal resolvida!", {
+        description: "A próxima solicitação assumiu a descrição do chamado.",
+      });
+      invalidateAll();
+      return;
+    }
     // Mesma proteção de concorrência do fluxo de finalização com imagem.
     const { data: updated, error } = await supabase
       .from("tickets")
