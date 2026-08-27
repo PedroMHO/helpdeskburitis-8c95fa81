@@ -449,6 +449,7 @@ function SolicitacaoCard({
   solicitacao: SolicitacaoRow;
   index: number;
   ticketStatus: TicketStatus;
+  context: "detalhe" | "manutencao";
   canFinalize: boolean;
   showStatusButtons: boolean;
   canSchedule: boolean;
