@@ -201,6 +201,58 @@ export function SolicitacaoCards({
     refresh();
   };
 
+  /** Baixa rápida (admin/atendente): finaliza sem exigir foto/solução detalhada. */
+  const finalizarRapido = async (s: SolicitacaoRow) => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ticket_solicitacoes")
+      .update({
+        status: "finalizada",
+        closing_note: "Solicitação finalizada administrativamente.",
+        closed_at: new Date().toISOString(),
+        closed_by: user.id,
+      })
+      .eq("id", s.id)
+      .neq("status", "finalizada");
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus(ticketStatus),
+        to_status: asDbStatus(ticketStatus),
+        changed_by: user.id,
+        note: `Solicitação finalizada administrativamente: ${s.descricao}`,
+      });
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Solicitação finalizada!");
+    refresh();
+  };
+
+  /** Exclusão de solicitação (somente administrador). */
+  const excluir = async (s: SolicitacaoRow) => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ticket_solicitacoes")
+      .delete()
+      .eq("id", s.id);
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus(ticketStatus),
+        to_status: asDbStatus(ticketStatus),
+        changed_by: user.id,
+        note: `Solicitação excluída pelo administrador: ${s.descricao}`,
+      });
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Solicitação excluída.");
+    refresh();
+  };
+
   if (solicitacoes.length === 0) return null;
 
   return (
@@ -214,6 +266,11 @@ export function SolicitacaoCards({
           showStatusButtons={showStatusButtons}
           canSchedule={canSchedule}
           canVerify={canVerify}
+          isAdmin={isAdmin}
+          canManage={canManage}
+          canFinalizarRapido={canFinalizarRapido}
+          canApprove={canApprove}
+          canDelete={canDelete}
           busy={busy}
           onFinalize={() => {
             setTarget(s);
@@ -223,12 +280,19 @@ export function SolicitacaoCards({
           onReparo={() => mudarStatus(s, "em_reparo")}
           onPronto={() => mudarStatus(s, "pronto_entrega")}
           onVerificar={() => mudarStatus(s, "aguardando_verificacao")}
+          onIniciar={() => mudarStatus(s, "em_atendimento")}
+          onStatusChange={(v) => mudarStatus(s, v)}
+          onFinalizarRapido={() => finalizarRapido(s)}
+          onAprovar={() => finalizarRapido(s)}
+          onRecusar={() => mudarStatus(s, "aberta")}
+          onExcluir={() => excluir(s)}
           onAgendar={() => {
             setScheduleTarget(s);
             setScheduleAt("");
           }}
         />
       ))}
+
 
       <Dialog
         open={!!scheduleTarget}
