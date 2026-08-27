@@ -33,12 +33,26 @@ import {
 /** Situação de cada solicitação extra (espelha o fluxo do chamado). */
 const SOLIC_STATUS_LABEL: Record<string, string> = {
   aberta: "Em aberto",
+  em_atendimento: "Em Atendimento",
   em_reparo: "Em Manutenção (Reparo)",
   pronto_entrega: "Pronto para Entregar",
   agendada: "Agendada",
   aguardando_verificacao: "Aguardando Verificação",
+  pendente_aprovacao: "Pendente de Aprovação",
   finalizada: "Finalizada",
 };
+
+/** Situações que o administrador pode aplicar manualmente. */
+const ADMIN_STATUS_OPTIONS = [
+  "aberta",
+  "em_atendimento",
+  "em_reparo",
+  "agendada",
+  "pronto_entrega",
+  "aguardando_verificacao",
+  "finalizada",
+];
+
 
 /**
  * Cards das solicitações extras anexadas ao chamado. Cada card pode ser
