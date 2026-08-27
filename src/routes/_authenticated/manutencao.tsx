@@ -1,10 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Wrench, Search } from "lucide-react";
+import { Wrench, Search, MessageSquarePlus } from "lucide-react";
 import { fetchTickets, fetchLocalidades } from "@/lib/data";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { SolicitacaoCards } from "@/components/SolicitacaoCards";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/manutencao")({
   head: () => ({
