@@ -424,6 +424,7 @@ function SolicitacaoCard({
   solicitacao: s,
   index,
   ticketStatus,
+  context,
   canFinalize,
   showStatusButtons,
   canSchedule,
