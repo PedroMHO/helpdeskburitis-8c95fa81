@@ -527,54 +527,123 @@ function SolicitacaoCard({
       )}
 
       {!done && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {showStatusButtons && s.status !== "em_reparo" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onReparo}
-              disabled={busy}
-            >
-              <Wrench className="h-4 w-4" /> (Reparo)
-            </Button>
+        <div className="mt-4 space-y-4 border-t pt-3">
+          {isAdmin && (
+            <div className="space-y-1.5">
+              <Label className="text-xs">Alterar situação da solicitação</Label>
+              <Select
+                value={s.status}
+                onValueChange={onStatusChange}
+                disabled={busy}
+              >
+                <SelectTrigger className="w-full sm:w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADMIN_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {SOLIC_STATUS_LABEL[opt] ?? opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
-          {showStatusButtons && s.status !== "pronto_entrega" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onPronto}
-              disabled={busy}
-            >
-              <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
-            </Button>
-          )}
-          {canSchedule && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onAgendar}
-              disabled={busy}
-            >
-              <Calendar className="h-4 w-4" /> Agendar
-            </Button>
-          )}
-          {canVerify && s.status !== "aguardando_verificacao" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onVerificar}
-              disabled={busy}
-            >
-              <ShieldAlert className="h-4 w-4" /> Transferir para verificação
-            </Button>
-          )}
-          {canFinalize && (
-            <Button size="sm" onClick={onFinalize} disabled={busy}>
-              <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
-            </Button>
-          )}
+
+          <div className="flex flex-wrap gap-2">
+            {canManage && s.status !== "em_atendimento" && (
+              <Button
+                size="sm"
+                onClick={onIniciar}
+                disabled={busy}
+              >
+                <Wrench className="h-4 w-4" /> Iniciar
+              </Button>
+            )}
+            {showStatusButtons && s.status !== "em_reparo" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onReparo}
+                disabled={busy}
+              >
+                <Wrench className="h-4 w-4" /> (Reparo)
+              </Button>
+            )}
+            {showStatusButtons && s.status !== "pronto_entrega" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onPronto}
+                disabled={busy}
+              >
+                <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
+              </Button>
+            )}
+            {canSchedule && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onAgendar}
+                disabled={busy}
+              >
+                <Calendar className="h-4 w-4" /> Agendar
+              </Button>
+            )}
+            {canVerify && s.status !== "aguardando_verificacao" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onVerificar}
+                disabled={busy}
+              >
+                <ShieldAlert className="h-4 w-4" /> Transferir para verificação
+              </Button>
+            )}
+            {canFinalize && (
+              <Button size="sm" onClick={onFinalize} disabled={busy}>
+                <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
+              </Button>
+            )}
+            {canFinalizarRapido && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onFinalizarRapido}
+                disabled={busy}
+              >
+                <CheckCircle2 className="h-4 w-4" /> Finalizar Solicitação
+              </Button>
+            )}
+            {canApprove && s.status === "pendente_aprovacao" && (
+              <>
+                <Button size="sm" onClick={onAprovar} disabled={busy}>
+                  <ThumbsUp className="h-4 w-4" /> Aprovar Baixa
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onRecusar}
+                  disabled={busy}
+                >
+                  <ThumbsDown className="h-4 w-4" /> Recusar Baixa
+                </Button>
+              </>
+            )}
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={onExcluir}
+                disabled={busy}
+              >
+                <Trash2 className="h-4 w-4" /> Excluir
+              </Button>
+            )}
+          </div>
         </div>
       )}
+
     </div>
   );
 }
