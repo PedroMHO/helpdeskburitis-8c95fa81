@@ -548,7 +548,7 @@ function SolicitacaoCard({
 
       {!done && (
         <div className="mt-4 space-y-4 border-t pt-3">
-          {isAdmin && (
+          {isAdmin && context === "detalhe" && (
             <div className="space-y-1.5">
               <Label className="text-xs">Alterar situação da solicitação</Label>
               <Select
@@ -571,7 +571,7 @@ function SolicitacaoCard({
           )}
 
           <div className="flex flex-wrap gap-2">
-            {canManage && s.status !== "em_atendimento" && (
+            {canManage && context === "detalhe" && s.status !== "em_atendimento" && (
               <Button
                 size="sm"
                 onClick={onIniciar}
@@ -580,7 +580,7 @@ function SolicitacaoCard({
                 <Wrench className="h-4 w-4" /> Iniciar
               </Button>
             )}
-            {showStatusButtons && s.status !== "em_reparo" && (
+            {showStatusButtons && context === "detalhe" && s.status !== "em_reparo" && (
               <Button
                 size="sm"
                 variant="outline"
@@ -590,7 +590,7 @@ function SolicitacaoCard({
                 <Wrench className="h-4 w-4" /> (Reparo)
               </Button>
             )}
-            {showStatusButtons && ticketStatus === "em_manutencao" && s.status !== "pronto_entrega" && (
+            {showStatusButtons && context === "manutencao" && s.status === "em_reparo" && (
               <Button
                 size="sm"
                 variant="outline"
@@ -600,7 +600,7 @@ function SolicitacaoCard({
                 <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
               </Button>
             )}
-            {canSchedule && (
+            {canSchedule && context === "detalhe" && (
               <Button
                 size="sm"
                 variant="outline"
@@ -610,7 +610,7 @@ function SolicitacaoCard({
                 <Calendar className="h-4 w-4" /> Agendar
               </Button>
             )}
-            {canVerify && s.status !== "aguardando_verificacao" && (
+            {canVerify && context === "detalhe" && s.status !== "aguardando_verificacao" && (
               <Button
                 size="sm"
                 variant="outline"
@@ -620,12 +620,12 @@ function SolicitacaoCard({
                 <ShieldAlert className="h-4 w-4" /> Transferir para verificação
               </Button>
             )}
-            {canFinalize && (
+            {canFinalize && context === "detalhe" && (
               <Button size="sm" onClick={onFinalize} disabled={busy}>
                 <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
               </Button>
             )}
-            {canFinalizarRapido && (
+            {canFinalizarRapido && context === "detalhe" && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -635,7 +635,7 @@ function SolicitacaoCard({
                 <CheckCircle2 className="h-4 w-4" /> Finalizar Solicitação
               </Button>
             )}
-            {canApprove && s.status === "pendente_aprovacao" && (
+            {canApprove && context === "detalhe" && s.status === "pendente_aprovacao" && (
               <>
                 <Button size="sm" onClick={onAprovar} disabled={busy}>
                   <ThumbsUp className="h-4 w-4" /> Aprovar Baixa
@@ -650,7 +650,7 @@ function SolicitacaoCard({
                 </Button>
               </>
             )}
-            {canDelete && (
+            {canDelete && context === "detalhe" && (
               <Button
                 size="sm"
                 variant="destructive"
