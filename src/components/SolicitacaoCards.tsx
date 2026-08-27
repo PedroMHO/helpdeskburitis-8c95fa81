@@ -420,6 +420,7 @@ export function SolicitacaoCards({
 function SolicitacaoCard({
   solicitacao: s,
   index,
+  ticketStatus,
   canFinalize,
   showStatusButtons,
   canSchedule,
