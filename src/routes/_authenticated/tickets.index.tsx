@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Ticket, PlusCircle, Search, Play } from "lucide-react";
+import { Ticket, PlusCircle, Search, Play, MessageSquarePlus } from "lucide-react";
+import { AddSolicitacaoDialog } from "@/components/AddSolicitacaoDialog";
 import { fetchTickets, setTechnicianStatus } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -39,6 +40,9 @@ function TicketsList() {
   const [status, setStatus] = useState<string>("all");
   const [priority, setPriority] = useState<string>("all");
   const [iniciandoId, setIniciandoId] = useState<string | null>(null);
+  const [solicitacaoTicket, setSolicitacaoTicket] = useState<
+    (typeof tickets)[number] | null
+  >(null);
 
   const canManage = isAdmin || isTecnico;
 
@@ -186,19 +190,42 @@ function TicketsList() {
                   {new Date(t.created_at).toLocaleDateString("pt-BR")}
                 </span>
               </div>
-              {canManage && t.status === "aguardando" && (
+              <div className="flex flex-col gap-2">
+                {canManage && t.status === "aguardando" && (
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    disabled={iniciandoId === t.id}
+                    onClick={(e) => iniciar(e, t.id, t.setor_id)}
+                  >
+                    <Play className="h-4 w-4" /> Iniciar
+                  </Button>
+                )}
                 <Button
                   size="sm"
+                  variant="outline"
                   className="w-full"
-                  disabled={iniciandoId === t.id}
-                  onClick={(e) => iniciar(e, t.id, t.setor_id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSolicitacaoTicket(t);
+                  }}
                 >
-                  <Play className="h-4 w-4" /> Iniciar
+                  <MessageSquarePlus className="h-4 w-4" /> (Adicionar
+                  Solicitação)
                 </Button>
-              )}
+              </div>
             </Link>
           ))}
         </div>
+      )}
+
+      {solicitacaoTicket && (
+        <AddSolicitacaoDialog
+          ticket={solicitacaoTicket}
+          open
+          onOpenChange={(v) => !v && setSolicitacaoTicket(null)}
+        />
       )}
     </div>
   );
