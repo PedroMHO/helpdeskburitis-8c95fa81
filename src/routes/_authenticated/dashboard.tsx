@@ -89,6 +89,11 @@ function Dashboard() {
     queryKey: ["profiles"],
     queryFn: fetchProfiles,
   });
+  const { data: solicResumo = [] } = useQuery({
+    queryKey: ["solicitacoes-resumo"],
+    queryFn: fetchSolicitacoesResumo,
+  });
+
 
   // RBAC dashboard:
   // - solicitante só enxerga métricas dos próprios chamados.
