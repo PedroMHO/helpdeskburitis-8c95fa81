@@ -411,11 +411,22 @@ function SolicitacaoCard({
   showStatusButtons,
   canSchedule,
   canVerify,
+  isAdmin,
+  canManage,
+  canFinalizarRapido,
+  canApprove,
+  canDelete,
   busy,
   onFinalize,
   onReparo,
   onPronto,
   onVerificar,
+  onIniciar,
+  onStatusChange,
+  onFinalizarRapido,
+  onAprovar,
+  onRecusar,
+  onExcluir,
   onAgendar,
 }: {
   solicitacao: SolicitacaoRow;
@@ -424,13 +435,25 @@ function SolicitacaoCard({
   showStatusButtons: boolean;
   canSchedule: boolean;
   canVerify: boolean;
+  isAdmin: boolean;
+  canManage: boolean;
+  canFinalizarRapido: boolean;
+  canApprove: boolean;
+  canDelete: boolean;
   busy: boolean;
   onFinalize: () => void;
   onReparo: () => void;
   onPronto: () => void;
   onVerificar: () => void;
+  onIniciar: () => void;
+  onStatusChange: (status: string) => void;
+  onFinalizarRapido: () => void;
+  onAprovar: () => void;
+  onRecusar: () => void;
+  onExcluir: () => void;
   onAgendar: () => void;
 }) {
+
   const [img, setImg] = useState<string | null>(null);
   const done = s.status === "finalizada";
 
