@@ -86,16 +86,18 @@ function Manutencao() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((t) => (
-            <Link
+            <div
               key={t.id}
-              to="/tickets/$id"
-              params={{ id: t.id }}
               className="flex flex-col gap-3 rounded-xl glass-card p-4 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight text-foreground">
+                <Link
+                  to="/tickets/$id"
+                  params={{ id: t.id }}
+                  className="font-semibold leading-tight text-foreground hover:underline"
+                >
                   {t.titulo}
-                </h3>
+                </Link>
                 <PriorityBadge priority={t.priority} />
               </div>
               <p className="text-xs font-medium text-primary">
@@ -110,7 +112,37 @@ function Manutencao() {
                   {new Date(t.created_at).toLocaleDateString("pt-BR")}
                 </span>
               </div>
-            </Link>
+              <Dialog
+                open={selectedTicketId === t.id}
+                onOpenChange={(open) =>
+                  setSelectedTicketId(open ? t.id : null)
+                }
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                  >
+                    <MessageSquarePlus className="h-4 w-4" />
+                    Solicitações
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{t.titulo}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <SolicitacaoCards
+                      ticketId={t.id}
+                      ticketStatus={t.status}
+                      canFinalize={false}
+                      context="manutencao"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           ))}
         </div>
       )}
