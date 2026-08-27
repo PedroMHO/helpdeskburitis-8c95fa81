@@ -316,6 +316,7 @@ export type Database = {
           descricao: string
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
+          scheduled_at: string | null
           solicitante_nome: string | null
           solicitante_ref: string | null
           status: string
@@ -332,6 +333,7 @@ export type Database = {
           descricao?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          scheduled_at?: string | null
           solicitante_nome?: string | null
           solicitante_ref?: string | null
           status?: string
@@ -348,6 +350,7 @@ export type Database = {
           descricao?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          scheduled_at?: string | null
           solicitante_nome?: string | null
           solicitante_ref?: string | null
           status?: string
