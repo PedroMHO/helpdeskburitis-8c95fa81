@@ -766,6 +766,7 @@ function TicketDetail() {
         ticketId={ticket.id}
         ticketStatus={ticket.status}
         canFinalize={!isSolicitante && ticket.status !== "finalizado"}
+        context="detalhe"
       />
 
 
