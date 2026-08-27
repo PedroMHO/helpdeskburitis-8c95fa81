@@ -444,6 +444,7 @@ function SolicitacaoCard({
 }: {
   solicitacao: SolicitacaoRow;
   index: number;
+  ticketStatus: TicketStatus;
   canFinalize: boolean;
   showStatusButtons: boolean;
   canSchedule: boolean;
