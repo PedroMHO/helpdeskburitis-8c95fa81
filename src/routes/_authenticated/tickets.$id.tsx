@@ -30,7 +30,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
-import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus } from "@/lib/data";
+import { fetchTicket, fetchProfiles, fetchLocalidades, fetchTecnicos, setTechnicianStatus, fetchTicketSolicitacoes } from "@/lib/data";
+import { SolicitacaoCards } from "@/components/SolicitacaoCards";
 import { signedUrl } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
