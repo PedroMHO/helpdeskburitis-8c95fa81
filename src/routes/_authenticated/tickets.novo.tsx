@@ -39,7 +39,6 @@ function NovoChamado() {
     queryFn: fetchSolicitantes,
   });
 
-  const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [agendado, setAgendado] = useState(false);
@@ -139,19 +138,48 @@ function NovoChamado() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!titulo.trim()) return toast.error("Informe o título do chamado.");
+    if (!setorId) return toast.error("Selecione o setor do chamado.");
     if (agendado && !scheduledAt) return toast.error("Informe a data do agendamento.");
-    setBusy(true);
-    const solName = solicitanteRef
-      ? solicitantes.find((s) => s.id === solicitanteRef)?.nome ?? null
-      : null;
+
     const status = agendado
       ? "agendado"
       : semData
         ? "aguardando_agendamento"
         : "aguardando";
+
+    setBusy(true);
+
+    // Regra: 1 chamado ativo por setor. Exceção: o chamado existente está
+    // "agendado", ou o novo chamado é agendado / aguardando agendamento.
+    if (status === "aguardando") {
+      const { data: existentes, error: checkError } = await supabase
+        .from("tickets")
+        .select("id, status")
+        .eq("setor_id", setorId)
+        .not("status", "in", "(finalizado,agendado)")
+        .limit(1);
+      if (checkError) {
+        setBusy(false);
+        return toast.error("Erro ao validar setor", {
+          description: checkError.message,
+        });
+      }
+      if ((existentes ?? []).length > 0) {
+        setBusy(false);
+        return toast.error("Este setor já possui um chamado ativo.", {
+          description:
+            "Use \"Adicionar Solicitação\" no chamado existente ou abra como Agendado / (Sem data).",
+        });
+      }
+    }
+
+    const setorNome =
+      (loc?.setores ?? []).find((s) => s.id === setorId)?.nome ?? "Chamado";
+    const solName = solicitanteRef
+      ? solicitantes.find((s) => s.id === solicitanteRef)?.nome ?? null
+      : null;
     const { error } = await supabase.from("tickets").insert({
-      titulo: titulo.trim(),
+      titulo: setorNome.slice(0, 140),
       descricao: descricao.trim(),
       priority,
       status,
@@ -162,7 +190,7 @@ function NovoChamado() {
       created_by: user.id,
       cidade_id: cidadeId || null,
       bairro_id: bairroId || null,
-      setor_id: setorId || null,
+      setor_id: setorId,
     });
 
     setBusy(false);
@@ -171,6 +199,7 @@ function NovoChamado() {
     qc.invalidateQueries({ queryKey: ["tickets"] });
     navigate({ to: "/tickets" });
   };
+
 
   // --- Simplified form for cargo "Solicitante" ---
   if (isSolicitante) {
@@ -229,10 +258,6 @@ function NovoChamado() {
       </div>
 
       <form onSubmit={submit} className="space-y-5 rounded-xl glass-card p-6 shadow-sm">
-        <div className="space-y-2">
-          <Label htmlFor="titulo">Título *</Label>
-          <Input id="titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={140} required />
-        </div>
         <div className="space-y-2">
           <Label htmlFor="desc">Descrição</Label>
           <Textarea id="desc" value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={5} maxLength={2000} />
@@ -361,7 +386,7 @@ function NovoChamado() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Setor</Label>
+            <Label>Setor *</Label>
             <Select
               value={setorId}
               onValueChange={(v) => {
