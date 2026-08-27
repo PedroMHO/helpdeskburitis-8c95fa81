@@ -39,7 +39,6 @@ function NovoChamado() {
     queryFn: fetchSolicitantes,
   });
 
-  const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("media");
   const [agendado, setAgendado] = useState(false);
@@ -260,10 +259,6 @@ function NovoChamado() {
 
       <form onSubmit={submit} className="space-y-5 rounded-xl glass-card p-6 shadow-sm">
         <div className="space-y-2">
-          <Label htmlFor="titulo">Título *</Label>
-          <Input id="titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={140} required />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="desc">Descrição</Label>
           <Textarea id="desc" value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={5} maxLength={2000} />
         </div>
@@ -391,7 +386,7 @@ function NovoChamado() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Setor</Label>
+            <Label>Setor *</Label>
             <Select
               value={setorId}
               onValueChange={(v) => {
