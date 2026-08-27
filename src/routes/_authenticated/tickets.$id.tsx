@@ -159,7 +159,42 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["ticket", id] });
     qc.invalidateQueries({ queryKey: ["tickets"] });
     qc.invalidateQueries({ queryKey: ["technician-status"] });
+    qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", id] });
+    qc.invalidateQueries({ queryKey: ["ticket-history", id] });
   };
+
+  /**
+   * Regra de fila de solicitações: ao dar baixa na solicitação principal, se
+   * ainda existirem solicitações em aberto, o chamado NÃO é finalizado — a
+   * próxima solicitação passa a ser a descrição principal do chamado.
+   */
+  const promoverProximaSolicitacao = async (
+    resolucao: string,
+    imgPath: string | null,
+  ) => {
+    const abertas = solicitacoes.filter((s) => s.status !== "finalizada");
+    const next = abertas[0];
+    if (!next) return false;
+    await supabase
+      .from("tickets")
+      .update({
+        descricao: next.descricao,
+        priority: next.priority,
+        solicitante_nome: next.solicitante_nome,
+        solicitante_ref: next.solicitante_ref,
+      })
+      .eq("id", ticket.id);
+    await supabase.from("ticket_solicitacoes").delete().eq("id", next.id);
+    await recordHistory(
+      ticket.status,
+      ticket.status,
+      `Solicitação principal resolvida: ${resolucao}${
+        imgPath ? ` (imagem: ${imgPath})` : ""
+      } — a próxima solicitação assumiu a descrição do chamado: ${next.descricao}`,
+    );
+    return true;
+  };
+
 
   const recordHistory = async (
     from: TicketStatus,
