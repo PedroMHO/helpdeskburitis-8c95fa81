@@ -161,6 +161,7 @@ function TicketDetail() {
     qc.invalidateQueries({ queryKey: ["technician-status"] });
     qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", id] });
     qc.invalidateQueries({ queryKey: ["ticket-history", id] });
+    qc.invalidateQueries({ queryKey: ["solicitacoes-resumo"] });
   };
 
   /**

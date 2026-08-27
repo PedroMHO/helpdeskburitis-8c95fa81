@@ -123,6 +123,7 @@ export function SolicitacaoCards({
     qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", ticketId] });
     qc.invalidateQueries({ queryKey: ["ticket-history", ticketId] });
     qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["solicitacoes-resumo"] });
   };
 
   /** Altera a situação de uma solicitação e registra no histórico. */
