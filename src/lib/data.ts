@@ -188,7 +188,9 @@ export interface SolicitacaoRow {
   closed_by: string | null;
   created_by: string;
   created_at: string;
+  scheduled_at?: string | null;
 }
+
 
 /** Solicitações extras anexadas a um chamado (cards adicionais). */
 export async function fetchTicketSolicitacoes(
