@@ -2,7 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Ticket, Clock, Wrench, CheckCircle2 } from "lucide-react";
-import { fetchTickets, fetchLocalidades, fetchProfiles } from "@/lib/data";
+import {
+  fetchTickets,
+  fetchLocalidades,
+  fetchProfiles,
+  fetchSolicitacoesResumo,
+} from "@/lib/data";
+
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { TechnicianStatusPanel } from "@/components/TechnicianStatusPanel";
