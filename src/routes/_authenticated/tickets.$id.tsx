@@ -320,6 +320,20 @@ function TicketDetail() {
       return toast.error("Erro no upload", { description: upErr.message });
     }
 
+    // Ainda há solicitações em aberto? Só a solicitação principal é resolvida.
+    if (await promoverProximaSolicitacao(note.trim(), path)) {
+      setBusy(false);
+      setFinalizing(false);
+      setNote("");
+      setFile(null);
+      toast.success("Solicitação principal resolvida!", {
+        description: "A próxima solicitação assumiu a descrição do chamado.",
+      });
+      invalidateAll();
+      return;
+    }
+
+
     // Prevenção de conflito/duplicidade: só finaliza se ainda não estiver
     // 'finalizado'. Se outro técnico já deu baixa, capturamos a 2ª tentativa
     // e enviamos para aprovação administrativa.
