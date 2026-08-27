@@ -585,7 +585,7 @@ function SolicitacaoCard({
                 <Wrench className="h-4 w-4" /> (Reparo)
               </Button>
             )}
-            {showStatusButtons && ticketStatus === "em_reparo" && s.status !== "pronto_entrega" && (
+            {showStatusButtons && ticketStatus === "em_manutencao" && s.status !== "pronto_entrega" && (
               <Button
                 size="sm"
                 variant="outline"
