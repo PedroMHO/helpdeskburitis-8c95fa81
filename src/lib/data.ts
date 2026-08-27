@@ -204,3 +204,19 @@ export async function fetchTicketSolicitacoes(
   if (error) throw error;
   return (data ?? []) as SolicitacaoRow[];
 }
+
+/**
+ * Situação resumida das solicitações extras em aberto de todos os chamados.
+ * Usada na tela inicial para ocultar chamados cujas solicitações estão em
+ * reparo (voltam a aparecer quando marcadas como "Pronto para Entregar").
+ */
+export async function fetchSolicitacoesResumo(): Promise<
+  { ticket_id: string; status: string }[]
+> {
+  const { data, error } = await supabase
+    .from("ticket_solicitacoes")
+    .select("ticket_id, status")
+    .neq("status", "finalizada");
+  if (error) throw error;
+  return (data ?? []) as { ticket_id: string; status: string }[];
+}
