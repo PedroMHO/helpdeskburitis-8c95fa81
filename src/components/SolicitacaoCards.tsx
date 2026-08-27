@@ -9,6 +9,9 @@ import {
   Loader2,
   MessageSquarePlus,
   ShieldAlert,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
   User as UserIcon,
   Wrench,
 } from "lucide-react";
@@ -23,6 +26,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -30,15 +40,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+
 /** Situação de cada solicitação extra (espelha o fluxo do chamado). */
 const SOLIC_STATUS_LABEL: Record<string, string> = {
   aberta: "Em aberto",
+  em_atendimento: "Em Atendimento",
   em_reparo: "Em Manutenção (Reparo)",
   pronto_entrega: "Pronto para Entregar",
   agendada: "Agendada",
   aguardando_verificacao: "Aguardando Verificação",
+  pendente_aprovacao: "Pendente de Aprovação",
   finalizada: "Finalizada",
 };
+
+/** Situações que o administrador pode aplicar manualmente. */
+const ADMIN_STATUS_OPTIONS = [
+  "aberta",
+  "em_atendimento",
+  "em_reparo",
+  "agendada",
+  "pronto_entrega",
+  "aguardando_verificacao",
+  "finalizada",
+];
+
 
 /**
  * Cards das solicitações extras anexadas ao chamado. Cada card pode ser
@@ -67,6 +92,11 @@ export function SolicitacaoCards({
   const showStatusButtons = isTecnico || isAtendente;
   const canSchedule = isAdmin || isTecnico || isAtendente;
   const canVerify = isAdmin || isTecnico || isAtendente;
+  const canManage = isAdmin || isTecnico;
+  const canFinalizarRapido = isAdmin || isAtendente;
+  const canApprove = isAdmin;
+  const canDelete = isAdmin;
+
 
   const [target, setTarget] = useState<SolicitacaoRow | null>(null);
   const [note, setNote] = useState("");
@@ -182,6 +212,58 @@ export function SolicitacaoCards({
     refresh();
   };
 
+  /** Baixa rápida (admin/atendente): finaliza sem exigir foto/solução detalhada. */
+  const finalizarRapido = async (s: SolicitacaoRow) => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ticket_solicitacoes")
+      .update({
+        status: "finalizada",
+        closing_note: "Solicitação finalizada administrativamente.",
+        closed_at: new Date().toISOString(),
+        closed_by: user.id,
+      })
+      .eq("id", s.id)
+      .neq("status", "finalizada");
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus(ticketStatus),
+        to_status: asDbStatus(ticketStatus),
+        changed_by: user.id,
+        note: `Solicitação finalizada administrativamente: ${s.descricao}`,
+      });
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Solicitação finalizada!");
+    refresh();
+  };
+
+  /** Exclusão de solicitação (somente administrador). */
+  const excluir = async (s: SolicitacaoRow) => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ticket_solicitacoes")
+      .delete()
+      .eq("id", s.id);
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus(ticketStatus),
+        to_status: asDbStatus(ticketStatus),
+        changed_by: user.id,
+        note: `Solicitação excluída pelo administrador: ${s.descricao}`,
+      });
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Solicitação excluída.");
+    refresh();
+  };
+
   if (solicitacoes.length === 0) return null;
 
   return (
@@ -195,6 +277,11 @@ export function SolicitacaoCards({
           showStatusButtons={showStatusButtons}
           canSchedule={canSchedule}
           canVerify={canVerify}
+          isAdmin={isAdmin}
+          canManage={canManage}
+          canFinalizarRapido={canFinalizarRapido}
+          canApprove={canApprove}
+          canDelete={canDelete}
           busy={busy}
           onFinalize={() => {
             setTarget(s);
@@ -204,12 +291,19 @@ export function SolicitacaoCards({
           onReparo={() => mudarStatus(s, "em_reparo")}
           onPronto={() => mudarStatus(s, "pronto_entrega")}
           onVerificar={() => mudarStatus(s, "aguardando_verificacao")}
+          onIniciar={() => mudarStatus(s, "em_atendimento")}
+          onStatusChange={(v) => mudarStatus(s, v)}
+          onFinalizarRapido={() => finalizarRapido(s)}
+          onAprovar={() => finalizarRapido(s)}
+          onRecusar={() => mudarStatus(s, "aberta")}
+          onExcluir={() => excluir(s)}
           onAgendar={() => {
             setScheduleTarget(s);
             setScheduleAt("");
           }}
         />
       ))}
+
 
       <Dialog
         open={!!scheduleTarget}
@@ -328,11 +422,22 @@ function SolicitacaoCard({
   showStatusButtons,
   canSchedule,
   canVerify,
+  isAdmin,
+  canManage,
+  canFinalizarRapido,
+  canApprove,
+  canDelete,
   busy,
   onFinalize,
   onReparo,
   onPronto,
   onVerificar,
+  onIniciar,
+  onStatusChange,
+  onFinalizarRapido,
+  onAprovar,
+  onRecusar,
+  onExcluir,
   onAgendar,
 }: {
   solicitacao: SolicitacaoRow;
@@ -341,13 +446,25 @@ function SolicitacaoCard({
   showStatusButtons: boolean;
   canSchedule: boolean;
   canVerify: boolean;
+  isAdmin: boolean;
+  canManage: boolean;
+  canFinalizarRapido: boolean;
+  canApprove: boolean;
+  canDelete: boolean;
   busy: boolean;
   onFinalize: () => void;
   onReparo: () => void;
   onPronto: () => void;
   onVerificar: () => void;
+  onIniciar: () => void;
+  onStatusChange: (status: string) => void;
+  onFinalizarRapido: () => void;
+  onAprovar: () => void;
+  onRecusar: () => void;
+  onExcluir: () => void;
   onAgendar: () => void;
 }) {
+
   const [img, setImg] = useState<string | null>(null);
   const done = s.status === "finalizada";
 
@@ -421,54 +538,123 @@ function SolicitacaoCard({
       )}
 
       {!done && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {showStatusButtons && s.status !== "em_reparo" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onReparo}
-              disabled={busy}
-            >
-              <Wrench className="h-4 w-4" /> (Reparo)
-            </Button>
+        <div className="mt-4 space-y-4 border-t pt-3">
+          {isAdmin && (
+            <div className="space-y-1.5">
+              <Label className="text-xs">Alterar situação da solicitação</Label>
+              <Select
+                value={s.status}
+                onValueChange={onStatusChange}
+                disabled={busy}
+              >
+                <SelectTrigger className="w-full sm:w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADMIN_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {SOLIC_STATUS_LABEL[opt] ?? opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
-          {showStatusButtons && s.status !== "pronto_entrega" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onPronto}
-              disabled={busy}
-            >
-              <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
-            </Button>
-          )}
-          {canSchedule && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onAgendar}
-              disabled={busy}
-            >
-              <Calendar className="h-4 w-4" /> Agendar
-            </Button>
-          )}
-          {canVerify && s.status !== "aguardando_verificacao" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onVerificar}
-              disabled={busy}
-            >
-              <ShieldAlert className="h-4 w-4" /> Transferir para verificação
-            </Button>
-          )}
-          {canFinalize && (
-            <Button size="sm" onClick={onFinalize} disabled={busy}>
-              <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
-            </Button>
-          )}
+
+          <div className="flex flex-wrap gap-2">
+            {canManage && s.status !== "em_atendimento" && (
+              <Button
+                size="sm"
+                onClick={onIniciar}
+                disabled={busy}
+              >
+                <Wrench className="h-4 w-4" /> Iniciar
+              </Button>
+            )}
+            {showStatusButtons && s.status !== "em_reparo" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onReparo}
+                disabled={busy}
+              >
+                <Wrench className="h-4 w-4" /> (Reparo)
+              </Button>
+            )}
+            {showStatusButtons && s.status !== "pronto_entrega" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onPronto}
+                disabled={busy}
+              >
+                <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
+              </Button>
+            )}
+            {canSchedule && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onAgendar}
+                disabled={busy}
+              >
+                <Calendar className="h-4 w-4" /> Agendar
+              </Button>
+            )}
+            {canVerify && s.status !== "aguardando_verificacao" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onVerificar}
+                disabled={busy}
+              >
+                <ShieldAlert className="h-4 w-4" /> Transferir para verificação
+              </Button>
+            )}
+            {canFinalize && (
+              <Button size="sm" onClick={onFinalize} disabled={busy}>
+                <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
+              </Button>
+            )}
+            {canFinalizarRapido && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onFinalizarRapido}
+                disabled={busy}
+              >
+                <CheckCircle2 className="h-4 w-4" /> Finalizar Solicitação
+              </Button>
+            )}
+            {canApprove && s.status === "pendente_aprovacao" && (
+              <>
+                <Button size="sm" onClick={onAprovar} disabled={busy}>
+                  <ThumbsUp className="h-4 w-4" /> Aprovar Baixa
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={onRecusar}
+                  disabled={busy}
+                >
+                  <ThumbsDown className="h-4 w-4" /> Recusar Baixa
+                </Button>
+              </>
+            )}
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={onExcluir}
+                disabled={busy}
+              >
+                <Trash2 className="h-4 w-4" /> Excluir
+              </Button>
+            )}
+          </div>
         </div>
       )}
+
     </div>
   );
 }
