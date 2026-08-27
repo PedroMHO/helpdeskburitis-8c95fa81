@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  Calendar,
   Camera,
   CheckCircle2,
   ImagePlus,
   Loader2,
   MessageSquarePlus,
+  ShieldAlert,
   User as UserIcon,
+  Wrench,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -16,6 +19,7 @@ import { fetchTicketSolicitacoes, type SolicitacaoRow } from "@/lib/data";
 import { asDbStatus, signedUrl, type TicketStatus } from "@/lib/helpdesk";
 import { PriorityBadge } from "@/components/TicketBadges";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -26,9 +30,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+/** Situação de cada solicitação extra (espelha o fluxo do chamado). */
+const SOLIC_STATUS_LABEL: Record<string, string> = {
+  aberta: "Em aberto",
+  em_reparo: "Em Manutenção (Reparo)",
+  pronto_entrega: "Pronto para Entregar",
+  agendada: "Agendada",
+  aguardando_verificacao: "Aguardando Verificação",
+  finalizada: "Finalizada",
+};
+
 /**
  * Cards das solicitações extras anexadas ao chamado. Cada card pode ser
- * finalizado individualmente (uma baixa por vez), sem encerrar o chamado.
+ * finalizado individualmente (uma baixa por vez), sem encerrar o chamado, e
+ * possui as mesmas ações de fluxo do card principal — respeitando as mesmas
+ * permissões de cargo.
  */
 export function SolicitacaoCards({
   ticketId,
@@ -39,7 +55,7 @@ export function SolicitacaoCards({
   ticketStatus: TicketStatus;
   canFinalize: boolean;
 }) {
-  const { user } = useAuth();
+  const { user, isAdmin, isTecnico, isAtendente } = useAuth();
   const qc = useQueryClient();
   const { takeNativePhoto } = useMobileFeatures();
   const { data: solicitacoes = [] } = useQuery({
@@ -47,10 +63,19 @@ export function SolicitacaoCards({
     queryFn: () => fetchTicketSolicitacoes(ticketId),
   });
 
+  // Mesmas regras de permissão aplicadas no card principal do chamado.
+  const showStatusButtons = isTecnico || isAtendente;
+  const canSchedule = isAdmin || isTecnico || isAtendente;
+  const canVerify = isAdmin || isTecnico || isAtendente;
+
   const [target, setTarget] = useState<SolicitacaoRow | null>(null);
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [scheduleTarget, setScheduleTarget] = useState<SolicitacaoRow | null>(
+    null,
+  );
+  const [scheduleAt, setScheduleAt] = useState("");
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const galleryRef = useRef<HTMLInputElement | null>(null);
 
@@ -62,6 +87,54 @@ export function SolicitacaoCards({
         type: shot.blob.type || "image/jpeg",
       }),
     );
+  };
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", ticketId] });
+    qc.invalidateQueries({ queryKey: ["ticket-history", ticketId] });
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+  };
+
+  /** Altera a situação de uma solicitação e registra no histórico. */
+  const mudarStatus = async (
+    s: SolicitacaoRow,
+    status: string,
+    extra?: { scheduled_at?: string | null },
+  ) => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ticket_solicitacoes")
+      .update({ status, ...(extra ?? {}) })
+      .eq("id", s.id)
+      .neq("status", "finalizada");
+    if (!error) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus(ticketStatus),
+        to_status: asDbStatus(ticketStatus),
+        changed_by: user.id,
+        note: `Solicitação "${s.descricao}" → ${SOLIC_STATUS_LABEL[status] ?? status}${
+          extra?.scheduled_at
+            ? ` para ${new Date(extra.scheduled_at).toLocaleString("pt-BR")}`
+            : ""
+        }`,
+      });
+    }
+    setBusy(false);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success(`Solicitação atualizada: ${SOLIC_STATUS_LABEL[status] ?? status}`);
+    refresh();
+  };
+
+  const agendar = async () => {
+    if (!scheduleTarget) return;
+    if (!scheduleAt) return toast.error("Escolha a data e a hora do agendamento.");
+    await mudarStatus(scheduleTarget, "agendada", {
+      scheduled_at: new Date(scheduleAt).toISOString(),
+    });
+    setScheduleTarget(null);
+    setScheduleAt("");
   };
 
   const finalizar = async () => {
@@ -106,8 +179,7 @@ export function SolicitacaoCards({
     setTarget(null);
     setNote("");
     setFile(null);
-    qc.invalidateQueries({ queryKey: ["ticket-solicitacoes", ticketId] });
-    qc.invalidateQueries({ queryKey: ["ticket-history", ticketId] });
+    refresh();
   };
 
   if (solicitacoes.length === 0) return null;
@@ -120,13 +192,58 @@ export function SolicitacaoCards({
           solicitacao={s}
           index={i + 2}
           canFinalize={canFinalize}
+          showStatusButtons={showStatusButtons}
+          canSchedule={canSchedule}
+          canVerify={canVerify}
+          busy={busy}
           onFinalize={() => {
             setTarget(s);
             setNote("");
             setFile(null);
           }}
+          onReparo={() => mudarStatus(s, "em_reparo")}
+          onPronto={() => mudarStatus(s, "pronto_entrega")}
+          onVerificar={() => mudarStatus(s, "aguardando_verificacao")}
+          onAgendar={() => {
+            setScheduleTarget(s);
+            setScheduleAt("");
+          }}
         />
       ))}
+
+      <Dialog
+        open={!!scheduleTarget}
+        onOpenChange={(v) => !v && setScheduleTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendar solicitação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="rounded-md bg-muted/50 p-3 text-sm text-foreground/90">
+              {scheduleTarget?.descricao}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="solic-sched">Data e hora *</Label>
+              <Input
+                id="solic-sched"
+                type="datetime-local"
+                value={scheduleAt}
+                onChange={(e) => setScheduleAt(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScheduleTarget(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={agendar} disabled={busy}>
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              Agendar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!target} onOpenChange={(v) => !v && setTarget(null)}>
         <DialogContent>
@@ -208,12 +325,28 @@ function SolicitacaoCard({
   solicitacao: s,
   index,
   canFinalize,
+  showStatusButtons,
+  canSchedule,
+  canVerify,
+  busy,
   onFinalize,
+  onReparo,
+  onPronto,
+  onVerificar,
+  onAgendar,
 }: {
   solicitacao: SolicitacaoRow;
   index: number;
   canFinalize: boolean;
+  showStatusButtons: boolean;
+  canSchedule: boolean;
+  canVerify: boolean;
+  busy: boolean;
   onFinalize: () => void;
+  onReparo: () => void;
+  onPronto: () => void;
+  onVerificar: () => void;
+  onAgendar: () => void;
 }) {
   const [img, setImg] = useState<string | null>(null);
   const done = s.status === "finalizada";
@@ -239,7 +372,7 @@ function SolicitacaoCard({
                 : "bg-muted text-muted-foreground"
             }`}
           >
-            {done ? "Finalizada" : "Em aberto"}
+            {SOLIC_STATUS_LABEL[s.status] ?? s.status}
           </span>
         </div>
       </div>
@@ -256,6 +389,12 @@ function SolicitacaoCard({
           </span>
         )}
         <span>Adicionada em {new Date(s.created_at).toLocaleString("pt-BR")}</span>
+        {s.scheduled_at && (
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            Agendada para {new Date(s.scheduled_at).toLocaleString("pt-BR")}
+          </span>
+        )}
       </div>
 
       {done && (
@@ -281,11 +420,53 @@ function SolicitacaoCard({
         </div>
       )}
 
-      {!done && canFinalize && (
-        <div className="mt-4">
-          <Button size="sm" onClick={onFinalize}>
-            <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
-          </Button>
+      {!done && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {showStatusButtons && s.status !== "em_reparo" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onReparo}
+              disabled={busy}
+            >
+              <Wrench className="h-4 w-4" /> (Reparo)
+            </Button>
+          )}
+          {showStatusButtons && s.status !== "pronto_entrega" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onPronto}
+              disabled={busy}
+            >
+              <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
+            </Button>
+          )}
+          {canSchedule && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onAgendar}
+              disabled={busy}
+            >
+              <Calendar className="h-4 w-4" /> Agendar
+            </Button>
+          )}
+          {canVerify && s.status !== "aguardando_verificacao" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onVerificar}
+              disabled={busy}
+            >
+              <ShieldAlert className="h-4 w-4" /> Transferir para verificação
+            </Button>
+          )}
+          {canFinalize && (
+            <Button size="sm" onClick={onFinalize} disabled={busy}>
+              <CheckCircle2 className="h-4 w-4" /> Dar Baixa nesta Solicitação
+            </Button>
+          )}
         </div>
       )}
     </div>
