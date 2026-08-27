@@ -32,6 +32,12 @@ function Manutencao() {
     queryFn: fetchLocalidades,
   });
   const [q, setQ] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+
+  const selectedTicket = useMemo(
+    () => tickets.find((t) => t.id === selectedTicketId) ?? null,
+    [tickets, selectedTicketId],
+  );
 
   const setorNome = (id: string | null) =>
     id ? loc?.setores.find((s) => s.id === id)?.nome ?? null : null;
