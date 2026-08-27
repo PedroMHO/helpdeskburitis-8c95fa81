@@ -274,6 +274,7 @@ export function SolicitacaoCards({
           key={s.id}
           solicitacao={s}
           index={i + 2}
+          ticketStatus={ticketStatus}
           canFinalize={canFinalize}
           showStatusButtons={showStatusButtons}
           canSchedule={canSchedule}
@@ -419,6 +420,7 @@ export function SolicitacaoCards({
 function SolicitacaoCard({
   solicitacao: s,
   index,
+  ticketStatus,
   canFinalize,
   showStatusButtons,
   canSchedule,
@@ -443,6 +445,7 @@ function SolicitacaoCard({
 }: {
   solicitacao: SolicitacaoRow;
   index: number;
+  ticketStatus: TicketStatus;
   canFinalize: boolean;
   showStatusButtons: boolean;
   canSchedule: boolean;
@@ -582,7 +585,7 @@ function SolicitacaoCard({
                 <Wrench className="h-4 w-4" /> (Reparo)
               </Button>
             )}
-            {showStatusButtons && s.status !== "pronto_entrega" && (
+            {showStatusButtons && ticketStatus === "em_manutencao" && s.status !== "pronto_entrega" && (
               <Button
                 size="sm"
                 variant="outline"
