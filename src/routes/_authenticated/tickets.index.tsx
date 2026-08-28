@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Ticket, PlusCircle, Search, Play, MessageSquarePlus } from "lucide-react";
 import { AddSolicitacaoDialog } from "@/components/AddSolicitacaoDialog";
-import { fetchTickets, setTechnicianStatus } from "@/lib/data";
+import { fetchTickets, fetchSolicitacoesResumo, setTechnicianStatus } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
@@ -35,6 +35,10 @@ function TicketsList() {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
+  });
+  const { data: solicitacoes = [] } = useQuery({
+    queryKey: ["solicitacoes-resumo"],
+    queryFn: fetchSolicitacoesResumo,
   });
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
@@ -76,6 +80,19 @@ function TicketsList() {
   };
 
   const onlyOwnQueue = isTecnico && !isAdmin && !isAtendente;
+  const ticketsSomenteEmReparo = useMemo(() => {
+    const estadosPorTicket = new Map<string, string[]>();
+    for (const solicitacao of solicitacoes) {
+      const estados = estadosPorTicket.get(solicitacao.ticket_id) ?? [];
+      estados.push(solicitacao.status);
+      estadosPorTicket.set(solicitacao.ticket_id, estados);
+    }
+    return new Set(
+      [...estadosPorTicket.entries()]
+        .filter(([, estados]) => estados.length > 0 && estados.every((estado) => estado === "em_reparo"))
+        .map(([ticketId]) => ticketId),
+    );
+  }, [solicitacoes]);
 
   const filtered = useMemo(
     () =>
@@ -88,6 +105,7 @@ function TicketsList() {
           t.status !== "pronto_entrega"
         )
           return false;
+        if (ticketsSomenteEmReparo.has(t.id)) return false;
         // Técnico: apenas não atribuídos + atribuídos a ele mesmo.
         // Admin e Atendente veem todos.
         if (onlyOwnQueue && t.tecnico_id && t.tecnico_id !== user?.id)
@@ -97,7 +115,7 @@ function TicketsList() {
         if (q && !t.titulo.toLowerCase().includes(q.toLowerCase())) return false;
         return true;
       }),
-    [tickets, status, priority, q, onlyOwnQueue, user?.id],
+    [tickets, status, priority, q, onlyOwnQueue, user?.id, ticketsSomenteEmReparo],
   );
 
   return (

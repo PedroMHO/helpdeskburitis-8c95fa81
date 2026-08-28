@@ -267,11 +267,17 @@ export function SolicitacaoCards({
     refresh();
   };
 
-  if (solicitacoes.length === 0) return null;
+  const visibleSolicitacoes = solicitacoes.filter((solicitacao) =>
+    context === "manutencao"
+      ? solicitacao.status === "em_reparo"
+      : solicitacao.status !== "em_reparo",
+  );
+
+  if (visibleSolicitacoes.length === 0) return null;
 
   return (
     <>
-      {solicitacoes.map((s, i) => (
+      {visibleSolicitacoes.map((s, i) => (
         <SolicitacaoCard
           key={s.id}
           solicitacao={s}
