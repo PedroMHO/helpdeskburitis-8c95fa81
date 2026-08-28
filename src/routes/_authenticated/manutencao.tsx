@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Wrench, Search, MessageSquarePlus } from "lucide-react";
-import { fetchTickets, fetchLocalidades } from "@/lib/data";
+import { toast } from "sonner";
+import { fetchTickets, fetchLocalidades, fetchSolicitacoesResumo } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { asDbStatus } from "@/lib/helpdesk";
 import { PriorityBadge, StatusBadge } from "@/components/TicketBadges";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/manutencao")({
 });
 
 function Manutencao() {
+  const { user, isAdmin, isTecnico, isAtendente } = useAuth();
+  const queryClient = useQueryClient();
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
@@ -31,8 +37,22 @@ function Manutencao() {
     queryKey: ["localidades"],
     queryFn: fetchLocalidades,
   });
+  const { data: solicitacoes = [] } = useQuery({
+    queryKey: ["solicitacoes-resumo"],
+    queryFn: fetchSolicitacoesResumo,
+  });
   const [q, setQ] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
+
+  const solicitacoesEmReparo = useMemo(
+    () => new Set(
+      solicitacoes
+        .filter((solicitacao) => solicitacao.status === "em_reparo")
+        .map((solicitacao) => solicitacao.ticket_id),
+    ),
+    [solicitacoes],
+  );
 
   const setorNome = (id: string | null) =>
     id ? loc?.setores.find((s) => s.id === id)?.nome ?? null : null;
@@ -41,11 +61,40 @@ function Manutencao() {
     () =>
       tickets.filter(
         (t) =>
-          t.status === "em_manutencao" &&
+          (t.status === "em_manutencao" || solicitacoesEmReparo.has(t.id)) &&
           (!q || t.titulo.toLowerCase().includes(q.toLowerCase())),
       ),
-    [tickets, q],
+    [tickets, q, solicitacoesEmReparo],
   );
+
+  const marcarPrincipalComoPronto = async (ticketId: string) => {
+    if (!user) return;
+    setUpdatingTicketId(ticketId);
+    const ticket = tickets.find((item) => item.id === ticketId);
+    const { error } = await supabase
+      .from("tickets")
+      .update({ status: asDbStatus("pronto_entrega") })
+      .eq("id", ticketId)
+      .eq("status", asDbStatus("em_manutencao"));
+
+    if (!error && ticket) {
+      await supabase.from("ticket_history").insert({
+        ticket_id: ticketId,
+        from_status: asDbStatus("em_manutencao"),
+        to_status: asDbStatus("pronto_entrega"),
+        changed_by: user.id,
+        note: "Chamado principal liberado pela página de manutenção.",
+      });
+    }
+    setUpdatingTicketId(null);
+    if (error) return toast.error("Erro", { description: error.message });
+    toast.success("Chamado pronto para entrega.");
+    queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] });
+    queryClient.invalidateQueries({ queryKey: ["ticket-history", ticketId] });
+  };
+
+  const canRelease = isAdmin || isTecnico || isAtendente;
 
   return (
     <div className="space-y-5">
@@ -107,22 +156,34 @@ function Manutencao() {
                   {new Date(t.created_at).toLocaleDateString("pt-BR")}
                 </span>
               </div>
+              {canRelease && t.status === "em_manutencao" && (
+                <Button
+                  size="sm"
+                  className="w-full"
+                  disabled={updatingTicketId === t.id}
+                  onClick={() => marcarPrincipalComoPronto(t.id)}
+                >
+                  Pronto para Entregar
+                </Button>
+              )}
               <Dialog
                 open={selectedTicketId === t.id}
                 onOpenChange={(open) =>
                   setSelectedTicketId(open ? t.id : null)
                 }
               >
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                  >
-                    <MessageSquarePlus className="h-4 w-4" />
-                    Solicitações
-                  </Button>
-                </DialogTrigger>
+                {solicitacoesEmReparo.has(t.id) && (
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                    >
+                      <MessageSquarePlus className="h-4 w-4" />
+                      Solicitações em manutenção
+                    </Button>
+                  </DialogTrigger>
+                )}
                 <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{t.titulo}</DialogTitle>

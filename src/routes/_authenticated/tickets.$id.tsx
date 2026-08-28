@@ -259,6 +259,9 @@ function TicketDetail() {
     if (error) return toast.error("Erro", { description: error.message });
     toast.success(`Status alterado para "${STATUS_LABEL[novo]}".`);
     invalidateAll();
+    if (novo === "em_manutencao") {
+      await navigate({ to: "/manutencao" });
+    }
   };
 
   // Ação: Transferir para verificação (admin, técnico, atendente).
@@ -676,17 +679,6 @@ function TicketDetail() {
                     disabled={busy}
                   >
                     <Wrench className="h-4 w-4" /> (Reparo)
-                  </Button>
-                )}
-              {showStatusButtons &&
-                ticket.status !== "finalizado" &&
-                ticket.status !== "pronto_entrega" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => mudarStatus("pronto_entrega")}
-                    disabled={busy}
-                  >
-                    <CheckCircle2 className="h-4 w-4" /> (Pronto para Entregar)
                   </Button>
                 )}
               {canSchedule && ticket.status !== "finalizado" && (
