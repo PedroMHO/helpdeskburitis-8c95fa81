@@ -91,7 +91,7 @@ export function SolicitacaoCards({
   });
 
   // Mesmas regras de permissão aplicadas no card principal do chamado.
-  const showStatusButtons = isTecnico || isAtendente;
+  const showStatusButtons = isAdmin || isTecnico || isAtendente;
   const canSchedule = isAdmin || isTecnico || isAtendente;
   const canVerify = isAdmin || isTecnico || isAtendente;
   const canManage = isAdmin || isTecnico;
