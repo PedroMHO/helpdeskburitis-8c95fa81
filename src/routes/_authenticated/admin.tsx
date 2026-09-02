@@ -300,6 +300,8 @@ function AdminPanel() {
 
       <DbTransferPanel />
 
+      <HistoryPurgePanel />
+
 
 
       <section className="rounded-xl glass-card p-2 shadow-sm sm:p-4">
