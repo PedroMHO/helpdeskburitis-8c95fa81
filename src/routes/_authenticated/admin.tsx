@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DbTransferPanel } from "@/components/DbTransferPanel";
+import { HistoryPurgePanel } from "@/components/HistoryPurgePanel";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Painel de Administração — HelpDesk Buritis" }] }),
