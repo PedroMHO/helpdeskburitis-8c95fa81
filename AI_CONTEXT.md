@@ -64,10 +64,14 @@ Ver `deploy/README.md` (PM2 `ecosystem.config.cjs`, `nginx.conf`, certbot/HTTPS)
 
 ## 4. Banco de dados
 
-- **Schema completo:** `schema.sql` (raiz) — idêntico a `deploy/supabase/01_schema_completo.sql`.
-- Recria tudo do schema `public`: **enums, tabelas, PK/FK, constraints, indexes,
-  funções (SECURITY DEFINER), triggers, políticas RLS e GRANTs**.
-- Idempotente (`IF NOT EXISTS` / `EXCEPTION WHEN duplicate_object`).
+- **Snapshot base:** `schema.sql` (raiz), espelhado em
+  `deploy/supabase/01_schema_completo.sql`.
+- **Evoluções posteriores:** `supabase/migrations/`. Para reproduzir o estado
+  atual, aplique o snapshot e todas as migrations em ordem cronológica. Elas
+  incluem os novos status, `device_tokens`, `ticket_solicitacoes`, políticas,
+  triggers e correções de segurança.
+- O conjunto recria o schema `public`: **enums, tabelas, PK/FK, constraints,
+  indexes, funções, triggers, políticas RLS e GRANTs**.
 
 Aplicar em qualquer PostgreSQL / Supabase local:
 ```bash
@@ -95,6 +99,13 @@ psql "$DATABASE_URL" -f schema.sql
     decisão do admin (Aprovar/Recusar baixa).
 - `ticket_history` — histórico de mudanças (guarda `changed_by` e `note`;
   também registra a 2ª tentativa de baixa em conflitos de concorrência).
+- `ticket_solicitacoes` — solicitações adicionais vinculadas a um chamado.
+  Cada linha é um card independente com descrição, prioridade, solicitante,
+  status, agendamento, resolução, foto e responsável/data de encerramento.
+  Status usados: `aberta | em_atendimento | em_reparo | agendada |
+  pronto_entrega | aguardando_verificacao | pendente_aprovacao | finalizada`.
+  Possui GRANTs explícitos, RLS baseada no acesso ao chamado pai, trigger de
+  `updated_at` e notificação automática após INSERT.
 - `notifications` — notificações por usuário.
 - `technician_status` — disponibilidade do técnico (por setor).
 - `solicitantes` — solicitantes por setor.
@@ -111,12 +122,15 @@ psql "$DATABASE_URL" -f schema.sql
 - `promote_due_scheduled_tickets()` — pg_cron: promove chamados agendados no dia.
 - `send_scheduled_reminders()` — lembrete 24h antes do agendamento.
 - `notify_team()` / `notify_ticket_changes()` — geram notificações.
+- `notify_new_solicitacao()` — após inserir uma solicitação extra, chama
+  `notify_team()` para avisar a equipe e o técnico responsável pelo chamado.
 - `enforce_solicitante_rate_limit()` — 1 chamado / 30 min para solicitantes.
 
 > **EXECUTE (segurança):** todas as funções SECURITY DEFINER internas/trigger/cron
 > (`handle_new_user`, `set_updated_at`, `notify_ticket_changes`,
 > `enforce_solicitante_rate_limit`, `handle_ticket_status_side_effects`,
-> `promote_due_scheduled_tickets`, `send_scheduled_reminders`, `notify_team`)
+> `promote_due_scheduled_tickets`, `send_scheduled_reminders`, `notify_team`,
+> `notify_new_solicitacao`)
 > tiveram `EXECUTE` **revogado** de `PUBLIC`/`anon`/`authenticated`. Apenas
 > `has_role`, `profiles_directory` e `technicians_directory` continuam com
 > `EXECUTE` para `authenticated` (são RPCs chamadas pelo app). Mantenha isso ao
@@ -141,6 +155,10 @@ psql "$DATABASE_URL" -f schema.sql
   solicitantes só editam o próprio chamado sem alterar `status`/técnico
   (impede auto-encerramento, reatribuição e escalonamento de prioridade).
   Cargos de staff e o técnico designado mantêm edição completa. Preserve isso.
+- **RLS de `ticket_solicitacoes`:** o acesso depende da permissão sobre o
+  chamado pai. A interface também replica as permissões do card principal:
+  admin/técnico/atendente controlam fluxo; ações administrativas como exclusão
+  e aprovação permanecem exclusivas do admin.
 
 ---
 
@@ -244,6 +262,43 @@ Painel isolado, **acessível apenas por admin**. Componente em
 > `supabaseAdmin` (service role) — garanta `SUPABASE_SERVICE_ROLE_KEY` no
 > ambiente do servidor e o bucket `ticket-proofs` criado no destino.
 
+3. **Limpar Histórico de Chamados** — componente
+   `src/components/HistoryPurgePanel.tsx` + server functions em
+   `src/lib/history-purge.functions.ts`, ambas protegidas por autenticação e
+   validação server-side de `has_role(admin)`:
+   - filtros **Anual** (ano), **Mensal** (ano/mês) e **Semanal** (intervalo no calendário);
+   - consulta prévia da quantidade de chamados finalizados no período;
+   - confirmação explícita antes da exclusão permanente;
+   - remove notificações, solicitações extras, histórico, fotos de encerramento
+     e, por último, os chamados finalizados selecionados;
+   - usa `closed_at` como referência e `created_at` como fallback.
+
+### 8.2 Abertura e solicitações adicionais
+
+- O formulário de novo chamado **não possui campo de título**. Ao salvar,
+  `titulo` recebe automaticamente o nome do setor selecionado.
+- Regra de duplicidade: só pode existir um chamado ativo comum por setor. Um
+  novo chamado é bloqueado se já houver outro ativo no setor. Exceções: o
+  existente está `agendado`, ou o novo é `agendado`/`aguardando_agendamento`.
+- O card do chamado oferece **Adicionar Solicitação**. O formulário herda o
+  setor do chamado (não permite trocá-lo) e recebe descrição, prioridade e
+  solicitante opcional.
+- A inclusão cria uma linha em `ticket_solicitacoes`, registra uma nota em
+  `ticket_history` e o trigger do banco cria notificações para a equipe/técnico.
+- `src/components/SolicitacaoCards.tsx` exibe cada solicitação em card próprio.
+  Cada card pode avançar de status e ser encerrado separadamente, com solução e
+  foto próprias, sem encerrar automaticamente as demais solicitações.
+- Ações disponíveis conforme cargo/contexto: iniciar, enviar para reparo,
+  agendar, transferir para verificação, finalizar, baixa administrativa,
+  aprovar/recusar e excluir. Não relaxe as verificações de RLS ao alterar a UI.
+- Ao entrar em `em_reparo`, a solicitação some dos detalhes e da lista inicial e
+  aparece em **Em Manutenção**. O botão **Pronto para Entregar** só aparece nesse
+  contexto para admin, técnico e atendente. Ao acioná-lo, a solicitação volta ao
+  fluxo geral com status `pronto_entrega`.
+- `fetchSolicitacoesResumo()` alimenta a filtragem do dashboard e da página de
+  manutenção. Toda mudança de status deve invalidar `ticket-solicitacoes`,
+  `solicitacoes-resumo`, `tickets`, histórico e notificações pertinentes.
+
 ---
 
 ## 9. Variáveis de ambiente
@@ -274,8 +329,9 @@ function. `import.meta.env.VITE_*` é para o cliente.
 3. **Backend/lógica de servidor:** use `createServerFn` de
    `@tanstack/react-start`. Leia segredos dentro do `.handler()`. Não importe
    `*.server.ts` a partir de arquivos de rota/cliente.
-4. **Banco:** mudanças de schema devem ser refletidas em `schema.sql`. Toda
-   nova tabela em `public` precisa de GRANTs + RLS + políticas.
+4. **Banco:** mudanças de schema devem gerar migration e também atualizar os
+   snapshots `schema.sql` e `deploy/supabase/01_schema_completo.sql`. Toda nova
+   tabela em `public` precisa de GRANTs + RLS + políticas na mesma migration.
 5. **Cargos:** sempre via `user_roles` + `has_role()`. Nunca no `profiles`.
 6. **Estilo:** use tokens semânticos de `src/styles.css` (não hardcode
    `text-white`, `bg-[#...]`). Tema Liquid Glass.
@@ -345,6 +401,9 @@ usando `nitro` (preset `node-server`) e o wrapper de erro SSR — nada muda.
   capture="environment">` oculto (força a câmera traseira no Android/Chrome sob
   HTTPS, com fallback para galeria). O upload ao bucket `ticket-proofs` é o mesmo
   nos dois caminhos.
+- **Solicitações adicionais** (`src/components/SolicitacaoCards.tsx`) usam a
+  mesma estratégia para a foto de encerramento e mantêm dois comandos visíveis:
+  **Tirar Foto do Encerramento** e **Importar da galeria**.
 - **Push após login**: `src/lib/auth.tsx` chama `registerPushOnLogin()` no evento
   `SIGNED_IN` do `onAuthStateChange`.
 
