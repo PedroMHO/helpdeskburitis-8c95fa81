@@ -49,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const sessionRef = useRef<Session | null>(null);
   const signingOutRef = useRef(false);
-  const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadProfile = async (uid: string) => {
     const [{ data: prof }, { data: roleRows }] = await Promise.all([
@@ -73,8 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
 
     const acceptSession = (nextSession: Session) => {
-      if (recoveryTimerRef.current) clearTimeout(recoveryTimerRef.current);
-      recoveryTimerRef.current = null;
       sessionRef.current = nextSession;
       setSession(nextSession);
       setUser(nextSession.user);
@@ -90,42 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
 
-    const recoverSession = () => {
-      if (recoveryTimerRef.current || signingOutRef.current) return;
-      setLoading(true);
-      recoveryTimerRef.current = setTimeout(async () => {
-        recoveryTimerRef.current = null;
-        const { data, error } = await supabase.auth.getSession();
-        if (!mounted) return;
-        if (!error && data.session) {
-          acceptSession(data.session);
-          await loadProfile(data.session.user.id);
-          return;
-        }
-
-        const previous = sessionRef.current;
-        if (previous?.refresh_token && navigator.onLine) {
-          const { data: restored, error: restoreError } =
-            await supabase.auth.setSession({
-              access_token: previous.access_token,
-              refresh_token: previous.refresh_token,
-            });
-          if (!mounted) return;
-          if (!restoreError && restored.session) {
-            acceptSession(restored.session);
-            await loadProfile(restored.session.user.id);
-            return;
-          }
-        }
-
-        if (!navigator.onLine && previous) {
-          acceptSession(previous);
-          return;
-        }
-        clearSession();
-      }, 1500);
-    };
-
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       if (sess?.user) {
         acceptSession(sess);
@@ -138,8 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else if (signingOutRef.current) {
         clearSession();
+      } else if (sessionRef.current) {
+        // A renovação automática do cliente pode falhar temporariamente (rede
+        // ou limite 429). Preserve a sessão visual e deixe o próprio cliente
+        // repetir com backoff, sem disparar getSession/setSession concorrentes.
+        setLoading(false);
       } else {
-        recoverSession();
+        clearSession();
       }
     });
 
@@ -153,19 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const refreshOnResume = () => {
-      if (document.visibilityState === "visible" && sessionRef.current) {
-        void refresh();
-      }
-    };
-    window.addEventListener("online", refreshOnResume);
-    document.addEventListener("visibilitychange", refreshOnResume);
-
     return () => {
       mounted = false;
-      if (recoveryTimerRef.current) clearTimeout(recoveryTimerRef.current);
-      window.removeEventListener("online", refreshOnResume);
-      document.removeEventListener("visibilitychange", refreshOnResume);
       sub.subscription.unsubscribe();
     };
   }, []);
