@@ -1,5 +1,8 @@
 {
   "name": "tanstack_start_ts",
+  "productName": "HelpDesk Buritis",
+  "version": "1.0.0",
+  "main": "electron/main.cjs",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -15,6 +18,8 @@
     "cap:add:android": "cap add android",
     "cap:open:android": "cap open android",
     "cap:run:android": "npm run build:mobile && cap sync android && cap open android"
+    ,"desktop:run": "electron ."
+    ,"desktop:package:win": "electron-packager . \"HelpDesk Buritis\" --platform=win32 --arch=x64 --out=electron-release --overwrite --ignore='^/src' --ignore='^/public' --ignore='^/dist' --ignore='^/electron-release' --ignore='^/android' --ignore='^/supabase' --ignore='^/deploy' --ignore='^/mobile' --ignore='^/node_modules'"
   },
   "dependencies": {
     "@capacitor/camera": "^8.2.1",
