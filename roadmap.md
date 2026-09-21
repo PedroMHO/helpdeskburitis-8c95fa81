@@ -8,4 +8,4 @@
 - [x] Implementar limpeza por período e backup local
 - [x] Validar persistência e regras principais
 - [x] Gerar e inspecionar pacote Windows x64
-- [ ] Entregar arquivo compactado para download
+- [x] Entregar arquivo compactado para download
