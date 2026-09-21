@@ -9,3 +9,5 @@
 - [x] Validar persistência e regras principais
 - [x] Gerar e inspecionar pacote Windows x64
 - [x] Entregar arquivo compactado para download
+
+- [x] Impedir desconexões automáticas da sessão no computador
