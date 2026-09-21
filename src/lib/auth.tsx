@@ -88,8 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       if (sess?.user) {
         acceptSession(sess);
-        setTimeout(() => loadProfile(sess.user.id), 0);
-        if (event === "SIGNED_IN") {
+        if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "USER_UPDATED") {
+          setTimeout(() => loadProfile(sess.user.id), 0);
+        }
+        if (event === "SIGNED_IN" && sessionRef.current?.user.id !== sess.user.id) {
           // Registra Push (FCM) somente no app nativo; no-op na web.
           void import("@/hooks/useMobileFeatures").then((m) =>
             m.registerPushOnLogin(),
