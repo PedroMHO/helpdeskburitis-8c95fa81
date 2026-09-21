@@ -6,6 +6,6 @@
 - [x] Implementar cadastros, chamados e solicitações
 - [x] Implementar fluxos de manutenção, histórico e notificações
 - [x] Implementar limpeza por período e backup local
-- [ ] Validar persistência e regras principais
-- [ ] Gerar e inspecionar pacote Windows x64
+- [x] Validar persistência e regras principais
+- [x] Gerar e inspecionar pacote Windows x64
 - [ ] Entregar arquivo compactado para download
