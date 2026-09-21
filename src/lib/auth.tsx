@@ -69,8 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
-
     const acceptSession = (nextSession: Session) => {
       sessionRef.current = nextSession;
       setSession(nextSession);
@@ -110,7 +108,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
