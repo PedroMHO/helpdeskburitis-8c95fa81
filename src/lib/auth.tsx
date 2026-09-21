@@ -69,8 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
-
     const acceptSession = (nextSession: Session) => {
       sessionRef.current = nextSession;
       setSession(nextSession);
@@ -109,18 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!mounted) return;
-      if (data.session?.user) {
-        acceptSession(data.session);
-        await loadProfile(data.session.user.id);
-      } else {
-        clearSession();
-      }
-    });
-
     return () => {
-      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
