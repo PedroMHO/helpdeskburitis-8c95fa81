@@ -1,5 +1,8 @@
 {
   "name": "tanstack_start_ts",
+  "productName": "HelpDesk Buritis",
+  "version": "1.0.0",
+  "main": "electron/main.cjs",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -15,6 +18,8 @@
     "cap:add:android": "cap add android",
     "cap:open:android": "cap open android",
     "cap:run:android": "npm run build:mobile && cap sync android && cap open android"
+    ,"desktop:run": "electron ."
+    ,"desktop:package:win": "electron-packager . \"HelpDesk Buritis\" --platform=win32 --arch=x64 --out=electron-release --overwrite --ignore='^/src' --ignore='^/public' --ignore='^/dist' --ignore='^/electron-release' --ignore='^/android' --ignore='^/supabase' --ignore='^/deploy' --ignore='^/mobile' --ignore='^/node_modules'"
   },
   "dependencies": {
     "@capacitor/camera": "^8.2.1",
@@ -81,13 +86,15 @@
   "devDependencies": {
     "@capacitor/android": "^8.4.1",
     "@capacitor/cli": "^8.4.1",
+    "@electron/packager": "^20.3.0",
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.13.1",
+    "@lovable.dev/vite-tanstack-config": "2.23.1",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
     "cross-env": "^10.1.0",
+    "electron": "^44.4.3",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
