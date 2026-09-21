@@ -216,7 +216,7 @@ class HelpDeskDatabase {
       this.db.prepare(`INSERT INTO ticket_solicitacoes (id,ticket_id,descricao,priority,solicitante_nome,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,'aberta',?,?,?)`).run(id,input.ticket_id,input.descricao,input.priority||'media',input.solicitante_nome||null,user.id,stamp,stamp);
       this.db.prepare('INSERT INTO ticket_history VALUES(?,?,?,?,?,?,?)').run(uuid(),input.ticket_id,null,'aguardando',user.id,`Nova solicitação: ${input.descricao}`,stamp);
       const recipients=this.db.prepare("SELECT DISTINCT u.id FROM users u JOIN user_roles r ON r.user_id=u.id WHERE u.active=1 AND r.role IN ('admin','tecnico','atendente')").all();
-      for(const recipient of recipients) this.db.prepare('INSERT INTO notifications VALUES(?,?,?,?,?,?,?)').run(uuid(),recipient.id,'nova_solicitacao','Nova solicitação adicionada',input.descricao,input.ticket_id,0,stamp);
+      for(const recipient of recipients) this.db.prepare('INSERT INTO notifications VALUES(?,?,?,?,?,?,?,?)').run(uuid(),recipient.id,'nova_solicitacao','Nova solicitação adicionada',input.descricao,input.ticket_id,0,stamp);
     }); return {id};
   }
 
