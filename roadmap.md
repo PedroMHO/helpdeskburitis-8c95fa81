@@ -11,3 +11,4 @@
 - [x] Entregar arquivo compactado para download
 
 - [x] Impedir desconexões automáticas da sessão no computador
+- [x] Corrigir a validação de chamado ativo da recepção para considerar somente o setor selecionado

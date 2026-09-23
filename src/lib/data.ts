@@ -23,6 +23,40 @@ export interface TicketRow {
   created_at: string;
 }
 
+export interface BlockingTicket {
+  id: string;
+  titulo: string;
+  status: TicketStatus;
+}
+
+/**
+ * Finds an active ticket using only the selected sector id. City and
+ * neighborhood are deliberately excluded from this validation.
+ */
+export async function fetchBlockingTicketBySetor(
+  setorId: string,
+): Promise<BlockingTicket | null> {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select("id, titulo, status")
+    .eq("setor_id", setorId)
+    .in("status", [
+      "aguardando",
+      "aguardando_agendamento",
+      "em_atendimento",
+      "em_manutencao",
+      "pendente_conclusao",
+      "aguardando_verificacao",
+      "pendente_aprovacao",
+      "pronto_entrega",
+    ])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as BlockingTicket | null) ?? null;
+}
+
 export interface ProfileLite {
   id: string;
   full_name: string;
