@@ -157,8 +157,10 @@ function NovoChamado() {
 
     setBusy(true);
 
-    // Regra: 1 chamado ativo por setor. A consulta usa exclusivamente o UUID
-    // do setor selecionado; cidade e bairro não participam da trava.
+    // A trava considera somente cards presentes na fila geral: Aguardando,
+    // Em Atendimento ou Pronto para Entrega. Ao mover o chamado para uma fila
+    // separada (agendamento, manutenção, conclusão, verificação ou aprovação),
+    // o setor fica imediatamente livre para receber outro chamado.
     if (status === "aguardando") {
       let existente: Awaited<
         ReturnType<typeof fetchBlockingTicketBySetor>
