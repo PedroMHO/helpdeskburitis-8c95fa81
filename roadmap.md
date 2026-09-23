@@ -12,3 +12,4 @@
 
 - [x] Impedir desconexões automáticas da sessão no computador
 - [x] Corrigir a validação de chamado ativo da recepção para considerar somente o setor selecionado
+- [x] Liberar o setor quando o chamado sair da fila geral para uma página de acompanhamento

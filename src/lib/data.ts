@@ -42,12 +42,7 @@ export async function fetchBlockingTicketBySetor(
     .eq("setor_id", setorId)
     .in("status", [
       "aguardando",
-      "aguardando_agendamento",
       "em_atendimento",
-      "em_manutencao",
-      "pendente_conclusao",
-      "aguardando_verificacao",
-      "pendente_aprovacao",
       "pronto_entrega",
     ])
     .order("created_at", { ascending: false })
