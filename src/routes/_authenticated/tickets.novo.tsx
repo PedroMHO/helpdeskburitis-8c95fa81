@@ -160,7 +160,9 @@ function NovoChamado() {
     // Regra: 1 chamado ativo por setor. A consulta usa exclusivamente o UUID
     // do setor selecionado; cidade e bairro não participam da trava.
     if (status === "aguardando") {
-      let existente = null;
+      let existente: Awaited<
+        ReturnType<typeof fetchBlockingTicketBySetor>
+      > = null;
       try {
         existente = await fetchBlockingTicketBySetor(setorId);
       } catch (checkError) {
