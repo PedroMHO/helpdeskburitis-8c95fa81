@@ -15,7 +15,7 @@
 - [x] Liberar o setor quando o chamado sair da fila geral para uma página de acompanhamento
 
 ## Exportação autônoma
-- [ ] Preparar código, assets, estrutura atual do banco e instalação independente
-- [ ] Documentar manutenção, hospedagem e desenvolvimento com Claude Code/Codex
-- [ ] Verificar e entregar ZIP sem credenciais ou arquivos gerados
+- [x] Preparar código, assets, estrutura atual do banco e instalação independente
+- [x] Documentar manutenção, hospedagem e desenvolvimento com Claude Code/Codex
+- [x] Verificar e entregar ZIP sem credenciais ou arquivos gerados
 - [ ] Incorporar exportação completa de dados e fotos — depende do download pelo proprietário no Lovable Cloud
